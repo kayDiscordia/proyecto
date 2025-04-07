@@ -1,0 +1,1 @@
+npx @tailwindcss/cli -i vistas/CSS/input.css -o vistas/CSS/output.css --watch
