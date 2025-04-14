@@ -22,12 +22,13 @@ if (isset($_POST['submit'])) {
             $_SESSION['iniciosesion'] = true;
             $_SESSION['id'] = $iniciosesion->IdUsuario();
         
-            // Obtener el cargo del empleado y guardarlo en la sesión
-            $cargo = $iniciosesion->obtenerCargoPorId($_SESSION['id']);
-            $_SESSION['cargo'] = $cargo;
+            // Obtener los datos del empleado y guardar el idRol en la sesión
+            $empleado = $iniciosesion->obtenerDatosEmpleadoPorId($_SESSION['id']);
+            $_SESSION['idRol'] = $empleado['idRol'];
+            $_SESSION['nombres'] = $empleado['nombres'];
+            $_SESSION['apellidos'] = $empleado['apellidos'];
+            $_SESSION['idDepartamento'] = $empleado['idDepartamento'];
         
-            // Establecer los datos de nombre y apellido en la sesión
-            $iniciosesion->establecerDatosSesion($_SESSION['id']);
         
             header('location: vistas/home.php');
             exit();

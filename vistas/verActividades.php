@@ -71,6 +71,7 @@ try {
                             <?php foreach ($listaActividades as $actividad) { ?>
                                 <tr class="hover:bg-gray-50">
                                     <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($contador++ ?? '') ?></td>
+                                    <td class="p-3 text-sm text-gray-700 hidden"><?= htmlspecialchars($actividad['idActividad'] ?? '') ?></td>
                                     <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($actividad['categoriaActividad'] ?? '') ?></td>
                                     <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($actividad['descripcionActividad'] ?? '') ?></td>
                                     <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($actividad['fechaInicio'] ?? '') ?></td>

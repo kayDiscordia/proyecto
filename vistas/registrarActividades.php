@@ -52,51 +52,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 document.getElementById('fechaCulminacion').min = fechaInicio;
             });
 
-            const departamentoSelect = document.getElementById('idDepartamento');
-            const categoriaSelect = document.getElementById('idCategoria');
+            document.addEventListener('DOMContentLoaded', async function() {
+        const categoriaSelect = document.getElementById('idCategoria');
+        const departamentoId = "<?php echo isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : ''; ?>";
 
-            departamentoSelect.addEventListener('change', async function() {
-                const selectedDepartamento = departamentoSelect.value;
-                categoriaSelect.innerHTML = '<option value="">Cargando categorías...</option>';
+        if (departamentoId) {
+            // Mostrar mensaje de carga
+            categoriaSelect.innerHTML = '<option value="">Cargando categorías...</option>';
 
-                if (!selectedDepartamento) {
-                    categoriaSelect.innerHTML = '<option value="">Seleccione una categoría</option>';
-                    return;
+            try {
+                // Realizar la solicitud para obtener las categorías
+                const response = await fetch(`obtenerCategorias.php?idDepartamento=${departamentoId}`);
+                if (!response.ok) {
+                    throw new Error('Error al cargar categorías');
                 }
 
-                try {
-                    const response = await fetch(`obtenerCategorias.php?idDepartamento=${selectedDepartamento}`);
-                    if (!response.ok) {
-                        throw new Error('Error al cargar categorías');
+                const categorias = await response.json();
+
+                // Limpiar el select y agregar las categorías
+                categoriaSelect.innerHTML = '<option value="">Seleccione una categoría</option>';
+                categorias.forEach(categoria => {
+                    const option = document.createElement('option');
+                    option.value = categoria.idCategoria;
+                    option.text = categoria.nombreCategoria;
+                    categoriaSelect.add(option);
+                });
+
+                // Restaurar selección previa si existe
+                <?php if (!empty($formData['idCategoria'])): ?>
+                    if (categoriaSelect.querySelector(`option[value="<?php echo $formData['idCategoria']; ?>"]`)) {
+                        categoriaSelect.value = "<?php echo $formData['idCategoria']; ?>";
                     }
-                    const categorias = await response.json();
-
-                    categoriaSelect.innerHTML = '<option value="">Seleccione una categoría</option>';
-                    
-                    categorias.forEach(categoria => {
-                        const option = document.createElement('option');
-                        option.value = categoria.idCategoria;
-                        option.text = categoria.nombreCategoria;
-                        categoriaSelect.add(option);
-                    });
-
-                    // Restaurar selección previa si existe
-                    <?php if (!empty($formData['idCategoria'])): ?>
-                        if (categoriaSelect.querySelector(`option[value="<?php echo $formData['idCategoria']; ?>"]`)) {
-                            categoriaSelect.value = "<?php echo $formData['idCategoria']; ?>";
-                        }
-                    <?php endif; ?>
-                } catch (error) {
-                    console.error('Error al cargar categorías:', error);
-                    categoriaSelect.innerHTML = '<option value="">Error al cargar categorías</option>';
-                }
-            });
-
-            // Disparar el evento change si ya hay un departamento seleccionado
-            <?php if (!empty($formData['idDepartamento'])): ?>
-                departamentoSelect.value = "<?php echo $formData['idDepartamento']; ?>";
-                departamentoSelect.dispatchEvent(new Event('change'));
-            <?php endif; ?>
+                <?php endif; ?>
+            } catch (error) {
+                console.error('Error al cargar categorías:', error);
+                categoriaSelect.innerHTML = '<option value="">Error al cargar categorías</option>';
+            }
+        } else {
+            categoriaSelect.innerHTML = '<option value="">Seleccione un departamento primero</option>';
+        }
+    });
         });
     </script>
 </head>
@@ -123,19 +118,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="w-full max-w-2xl mx-auto">
                 <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
                     <form action="" method="POST" id="activityForm" class="space-y-4">
-                        <!-- Select para departamentos -->
+                        <!--Departamento-->
                         <div class="space-y-2">
-                            <label for="idDepartamento" class="block text-sm font-medium text-gray-700">Departamento</label>
-                            <select id="idDepartamento" name="idDepartamento" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <option value="">Seleccione un departamento</option>
-                                <?php foreach ($departamentos as $departamento): ?>
-                                    <option value="<?php echo $departamento['idDepartamentos']; ?>" 
-                                        <?php echo (!empty($formData['idDepartamento']) && $formData['idDepartamento'] == $departamento['idDepartamentos'] ? 'selected' : ''); ?>>
-                                        <?php echo htmlspecialchars($departamento['nombreDepartamentos']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <label for="departamento" class="block text-sm font-medium text-gray-700">Departamento</label>
+                            <input type="text" id="departamento" name="departamento" 
+                                value="<?php echo isset($_SESSION['idDepartamento']) ? htmlspecialchars($departamentos[array_search($_SESSION['idDepartamento'], array_column($departamentos, 'idDepartamentos'))]['nombreDepartamentos']) : 'No asignado'; ?>" 
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" 
+                                readonly>
                         </div>
+                        <input type="hidden" id="idDepartamento" name="idDepartamento" 
+                        value="<?php echo isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : ''; ?>">
 
                         <!-- Select para categorías de actividades -->
                         <div class="space-y-2">
@@ -156,14 +148,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="space-y-2">
                                 <label for="fechaInicio" class="block text-sm font-medium text-gray-700">Fecha de Inicio</label>
                                 <input type="date" id="fechaInicio" name="fechaInicio" 
-                                       min="<?php echo date('Y-m-d'); ?>" 
+                                       min="<?php echo date('d-m-Y'); ?>" 
                                        value="<?php echo isset($formData['fechaInicio']) ? htmlspecialchars($formData['fechaInicio']) : ''; ?>" 
                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
                             </div>
                             <div class="space-y-2">
                                 <label for="fechaCulminacion" class="block text-sm font-medium text-gray-700">Fecha de Culminación</label>
                                 <input type="date" id="fechaCulminacion" name="fechaCulminacion" 
-                                       min="<?php echo date('Y-m-d'); ?>" 
+                                       min="<?php echo date('d-m-Y'); ?>" 
                                        value="<?php echo isset($formData['fechaCulminacion']) ? htmlspecialchars($formData['fechaCulminacion']) : ''; ?>" 
                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
                             </div>

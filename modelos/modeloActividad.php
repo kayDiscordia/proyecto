@@ -54,7 +54,7 @@ class modeloActividad {
     // Método para obtener todas las actividades
     public function obtenerActividades() {
         try {
-            // Consulta SQL para obtener las actividades con información relacionada
+            // Consulta SQL para obtener las actividades con información relacionada, ordenadas por ID
             $query = "
                 SELECT 
                     a.idActividad,
@@ -74,22 +74,24 @@ class modeloActividad {
                     estadoActividad es ON a.idEstado = es.idEstado
                 JOIN 
                     categoriasactividades c ON a.idCategoria = c.idCategoria
+                ORDER BY 
+                    a.idActividad ASC
             ";
-
+    
             // Ejecutar la consulta
             $result = $this->db->getConnection()->query($query);
-
+    
             // Verificar si la consulta fue exitosa
             if (!$result) {
                 throw new Exception("Error al ejecutar la consulta: " . $this->db->getConnection()->error);
             }
-
+    
             // Obtener los resultados como un array asociativo
             $actividades = [];
             while ($row = $result->fetch_assoc()) {
                 $actividades[] = $row;
             }
-
+    
             return $actividades;
         } catch (Exception $e) {
             throw new Exception("Error al obtener actividades: " . $e->getMessage());

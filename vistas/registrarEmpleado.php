@@ -117,14 +117,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <!-- Campos de departamento -->                
                         <div class="space-y-2">
-                            <label for="idDepartamento" class="block text-sm font-medium text-gray-700">Departamento</label>
-                            <select id="idDepartamento" name="idDepartamento" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <option value="">Seleccione un departamento</option>
-                                <?php foreach ($departamentos as $departamento): ?>
-                                    <option value="<?php echo $departamento['idDepartamentos']; ?>"><?php echo $departamento['nombreDepartamentos']; ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <label for="departamento" class="block text-sm font-medium text-gray-700">Departamento</label>
+                            <input type="text" id="departamento" name="departamento" 
+                                value="<?php echo isset($_SESSION['idDepartamento']) ? htmlspecialchars($departamentos[array_search($_SESSION['idDepartamento'], array_column($departamentos, 'idDepartamentos'))]['nombreDepartamentos']) : 'No asignado'; ?>" 
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" 
+                                readonly>
                         </div>
+                        <!-- Esto es lo que realmente esta enviando el valor del campo -->
+                            <input type="hidden" id="idDepartamento" name="idDepartamento" 
+                                value="<?php echo isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : ''; ?>">
                         <!-- Campos de usuario y contraseña -->
                         <div class="space-y-2">
                             <label for="usuarioEmpleado" class="block text-sm font-medium text-gray-700">Usuario de acceso para el empleado</label>

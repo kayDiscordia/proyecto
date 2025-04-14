@@ -1,1 +1,19 @@
-npx @tailwindcss/cli -i vistas/CSS/input.css -o vistas/CSS/output.css --watch
+npx @tailwindcss/cli -i vistas/CSS/input.css -o vistas/CSS/output.css --watch (NO BORRAR)
+
+
+14/4/2025 Santiago empieza a usar este txt pitero como si fueran las notas de un parche y para anotar las actualizaciones
+te agradezco que hagas lo mismo 
+
+PD: abre el txt con visual para evitar morir de cancer
+
+-Se corrigio el error que hacia que las actividades se movieran al cambiarle el estado
+-Se modifico el login para tomar los datos usando una funcion de la clase login
+-Se modifico el sidebar para que use el idRol para cargar los modulos
+-Tambien se añadio que el login tome el valor de idDepartamento
+-Se cambio en el registrar actividades el select de los departamentos, ahora toma directamente el que este cargado en la sesion
+[La parte mala es que no se como furula el obtenerCategorias de actividad asi que jodi eso]
+
+-Se cambio en el registrar empleado el select de los departamentos, ahora toma directamente el q esta cargado en sesion
+[ese no explotó asi q victoria royale]
+
+-cambie tambien un par de cosas en los controladores de sesion y el modelo de actividades pero son estables asi q chill
