@@ -74,7 +74,7 @@ try {
         <?php include 'modulos/sidebar.php' ?>
         <!-- Main container -->
         <main class="flex-1 p-6 overflow-y-auto bg-e8eeff">
-            <h2 class="text-2xl font-semibold mb-4">Lista de Empleados</h2>
+            <h2 class="text-2xl font-semibold mb-4">Ver Reportes de Empleados</h2>
             <div class="mb-4">
                 <input type="text" id="searchInput" onkeyup="buscarEmpleado()" placeholder="Buscar empleado por nombre o apellido" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
             </div>

@@ -1,18 +1,12 @@
 <?php
-
-// Incluir archivos necesarios
 require_once '../login/conexion.php';
 require_once '../login/functionLogin.php';
-require_once '../login/claseSelect.php'; // Asegúrate de que el archivo tenga la clase SelectEmpleado
+require_once '../login/claseSelect.php';
 require_once '../controladores/controladorEmpleado.php';
 
-// Crear una instancia de la clase Conexion
 $conexion = new Conexion();
-
-// Crear una instancia de la clase SelectEmpleado
 $selectEmpleado = new SelectEmpleado($conexion->conexion);
 
-// Verificar si el usuario está logueado
 if (isset($_SESSION['id'])) {
     $user = $selectEmpleado->SelectuserByuser($_SESSION['id']);
 } else {
@@ -21,15 +15,12 @@ if (isset($_SESSION['id'])) {
 }
 $controlador = new controladorEmpleado();
 
-// Manejar solicitudes AJAX
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'verificarCedula') {
     $controlador->verificarCedulaAjax();
-    exit(); // Detener la ejecución para evitar cargar el resto de la página
+    exit();
 }
 
 $controlador->insercionEmpleado();
-
-// Obtener los cargos y departamentos
 $cargos = $controlador->obtenerCargos();
 $departamentos = $controlador->obtenerDepartamentos();
 
@@ -38,22 +29,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombres = trim($_POST['nombres']);
     $apellidos = trim($_POST['apellidos']);
 
-    // Validar cédula
-    if (strlen($cedula) > 8) {
-        die('La cédula no puede tener más de 8 caracteres.');
+    if (strlen($cedula) > 8 || !ctype_digit($cedula)) {
+        die('La cédula solo puede contener números y tener un máximo de 8 caracteres.');
     }
 
-    // Validar nombres y apellidos
-    $nombreRegex = '/^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+$/';
-    if (!preg_match($nombreRegex, $nombres)) {
-        die('El nombre debe tener al menos 2 palabras y cada palabra debe comenzar con mayúscula.');
+    $nombreRegex = '/^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(\s[A-Za-zÁÉÍÓÚáéíóúÑñ]+){0,3}$/';
+    if (!preg_match($nombreRegex, $nombres) || strlen($nombres) > 25) {
+        die('El nombre debe contener un máximo de 25 caracteres, hasta 3 espacios, y no puede incluir caracteres especiales.');
     }
 
-    if (!preg_match($nombreRegex, $apellidos)) {
-        die('El apellido debe tener al menos 2 palabras y cada palabra debe comenzar con mayúscula.');
+    if (!preg_match($nombreRegex, $apellidos) || strlen($apellidos) > 25) {
+        die('El apellido debe contener un máximo de 25 caracteres, hasta 3 espacios, y no puede incluir caracteres especiales.');
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -66,75 +54,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="bg-[#E8EEFF]">
     <div class="flex h-screen" x-data="{ isCollapsed: false }">
-        <!-- Sidebar -->
         <?php include 'modulos/sidebar.php' ?>
-        <!-- Main content -->
         <main class="flex-1 p-6 overflow-y-auto">
             <h1 class="text-2xl font-semibold mb-4 text-center">Registro de Empleados</h1>
             <div class="w-full max-w-2xl mx-auto">
                 <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
                     <form action="" method="POST" id="employeeForm" class="space-y-4">
-                        <!-- Campos del formulario -->
+                        <!-- Select para tipo de documento -->
+                        <div class="space-y-2">
+                            <label for="tipoDocumento" class="block text-sm font-medium text-gray-700">Tipo de Documento</label>
+                            <select id="tipoDocumento" name="tipoDocumento" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <option value="cedula">Cédula</option>
+                                <option value="pasaporte">Pasaporte</option>
+                            </select>
+                        </div>
+
+                        <!-- Campo de cédula -->
                         <div class="space-y-2">
                             <label for="cedula" class="block text-sm font-medium text-gray-700">Cédula</label>
                             <input type="text" id="cedula" name="cedula" 
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" 
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8)" 
-                                onblur="verificarCedula()" 
                                 maxlength="8" 
+                                onblur="verificarCedula()" 
                                 required>
                             <p id="mensajeError" style="color: red; display: none;"></p>
                         </div>
 
+                        <!-- Campo de nombres  -->
                         <div class="space-y-2">
                             <label for="nombres" class="block text-sm font-medium text-gray-700">Nombres</label>
                             <input type="text" id="nombres" name="nombres" 
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" 
-                                oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ' ]/g, '').replace(/\s{2,}/g, ' ').trimStart().replace(/(.*\s.*)\s/, '$1')" 
-                                pattern="^[A-ZÁÉÍÓÚÑ][a-záéíóúñ']+\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ']+$" 
-                                title="Debe contener dos palabras, cada una comenzando con mayúscula, y no se permiten caracteres especiales (excepto acentos y apóstrofes)." 
+                                oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '').replace(/\s+/g, ' ').slice(0, 25); this.value = this.value.replace(/(^|\s)\S/g, l => l.toUpperCase())" 
+                                onblur="capitalizeFirstLetters(this)" 
+                                pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(\s[A-Za-zÁÉÍÓÚáéíóúÑñ]+){0,3}$" 
+                                title="Debe contener un máximo de 25 caracteres, sin caracteres especiales, y hasta 3 espacios." 
                                 required>
-                            <p id="nombreError" style="color: red; display: none;"></p>
                         </div>
 
+                        <!-- Campo de apellidos  -->
                         <div class="space-y-2">
                             <label for="apellidos" class="block text-sm font-medium text-gray-700">Apellidos</label>
                             <input type="text" id="apellidos" name="apellidos" 
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" 
-                                oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ' ]/g, '').replace(/\s{2,}/g, ' ').trimStart().replace(/(.*\s.*)\s/, '$1')" 
-                                pattern="^[A-ZÁÉÍÓÚÑ][a-záéíóúñ']+\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ']+$" 
-                                title="Debe contener dos palabras, cada una comenzando con mayúscula, y no se permiten caracteres especiales (excepto acentos y apóstrofes)." 
+                                oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '').replace(/\s+/g, ' ').slice(0, 25); this.value = this.value.replace(/(^|\s)\S/g, l => l.toUpperCase())" 
+                                onblur="capitalizeFirstLetters(this)" 
+                                pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(\s[A-Za-zÁÉÍÓÚáéíóúÑñ]+){0,3}$" 
+                                title="Debe contener un máximo de 25 caracteres, sin caracteres especiales, y hasta 3 espacios." 
                                 required>
-                            <p id="apellidoError" style="color: red; display: none;"></p>
                         </div>
 
-                        <!-- Select para cargos -->
+                        <!-- Campos de cargo -->
                         <div class="space-y-2">
                             <label for="idCargo" class="block text-sm font-medium text-gray-700">Cargo</label>
                             <select id="idCargo" name="idCargo" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                                 <option value="">Seleccione un cargo</option>
                                 <?php foreach ($cargos as $cargo): ?>
-                                    <option value="<?php echo $cargo['idCargo']; ?>">
-                                        <?php echo $cargo['nombreCargo']; ?>
-                                    </option>
+                                    <option value="<?php echo $cargo['idCargo']; ?>"><?php echo $cargo['nombreCargo']; ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-
-                        <!-- Select para departamentos -->
+                        <!-- Campos de departamento -->                
                         <div class="space-y-2">
                             <label for="idDepartamento" class="block text-sm font-medium text-gray-700">Departamento</label>
                             <select id="idDepartamento" name="idDepartamento" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                                 <option value="">Seleccione un departamento</option>
                                 <?php foreach ($departamentos as $departamento): ?>
-                                    <option value="<?php echo $departamento['idDepartamentos']; ?>">
-                                        <?php echo $departamento['nombreDepartamentos']; ?>
-                                    </option>
+                                    <option value="<?php echo $departamento['idDepartamentos']; ?>"><?php echo $departamento['nombreDepartamentos']; ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-
-                        <!-- Resto del formulario -->
+                        <!-- Campos de usuario y contraseña -->
                         <div class="space-y-2">
                             <label for="usuarioEmpleado" class="block text-sm font-medium text-gray-700">Usuario de acceso para el empleado</label>
                             <input type="text" id="usuarioEmpleado" name="usuarioEmpleado" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
@@ -159,16 +150,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </main>
     </div>
     <script>
+    // capitalizar automáticamente
+    function capitalizeFirstLetters(input) {
+        let words = input.value.split(' ');
+        for (let i = 0; i < words.length; i++) {
+            if (words[i].length > 0) {
+                words[i] = words[i][0].toUpperCase() + words[i].substring(1).toLowerCase();
+            }
+        }
+        input.value = words.join(' ');
+    }
+
+    // verificarCedula 
     function verificarCedula() {
         const cedula = document.getElementById('cedula').value;
-
-        // Crear un objeto FormData para enviar la cédula
         const formData = new FormData();
         formData.append('cedula', cedula);
-        formData.append('accion', 'verificarCedula'); // Identificador para la acción
+        formData.append('accion', 'verificarCedula');
 
-        // Realizar la solicitud AJAX
-        fetch('', { // La solicitud se envía al mismo archivo PHP
+        fetch('', {
             method: 'POST',
             body: formData
         })
@@ -188,8 +188,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         })
         .catch(error => console.error('Error en la solicitud:', error));
 
-
-        // Validar que solo contenga números
         const cedulaRegex = /^[0-9]+$/;
         if (!cedulaRegex.test(cedula)) {
             mensajeError.style.display = 'block';
@@ -198,7 +196,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             return;
         }
 
-        // Validar que no tenga más de 8 caracteres
         if (cedula.length > 8) {
             mensajeError.style.display = 'block';
             mensajeError.textContent = 'La cédula no puede tener más de 8 caracteres.';
@@ -209,39 +206,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mensajeError.style.display = 'none';
         btnRegistrar.disabled = false;
     }
-
-    function validarNombresApellidos() {
-        const nombres = document.getElementById('nombres').value;
-        const apellidos = document.getElementById('apellidos').value;
-
-        const nombreError = document.getElementById('nombreError');
-        const apellidoError = document.getElementById('apellidoError');
-
-        // Validar que no contengan caracteres especiales (excepto acentos y apóstrofes)
-        const nombreRegex = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ']+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ']+)+$/;
-        const apellidoRegex = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ']+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ']+)+$/;
-
-        if (!nombreRegex.test(nombres)) {
-            nombreError.style.display = 'block';
-            nombreError.textContent = 'El nombre debe tener al menos 2 palabras, comenzar con mayúscula y no contener caracteres especiales.';
-            document.getElementById('btnRegistrar').disabled = true;
-        } else {
-            nombreError.style.display = 'none';
-        }
-
-        if (!apellidoRegex.test(apellidos)) {
-            apellidoError.style.display = 'block';
-            apellidoError.textContent = 'El apellido debe tener al menos 2 palabras, comenzar con mayúscula y no contener caracteres especiales.';
-            document.getElementById('btnRegistrar').disabled = true;
-        } else {
-            apellidoError.style.display = 'none';
-        }
-
-        // Habilitar el botón si ambos campos son válidos
-        if (nombreRegex.test(nombres) && apellidoRegex.test(apellidos)) {
-            document.getElementById('btnRegistrar').disabled = false;
-        }
-    }
-</script>
+    </script>
 </body>
 </html>

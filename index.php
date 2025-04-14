@@ -73,6 +73,9 @@ if (isset($_POST['submit'])) {
         <?php endif; ?>
 
         <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+            <div class="flex justify-center text-gray-800 font-bold">
+                SISTEMA DE GESTION DE ACTIVIDADES
+            </div>
             <div class="flex justify-center">
                 <img src="vistas/CSS/Logo.png" alt="Logo" class="w-26 h-26 mb-4">
             </div>
@@ -116,12 +119,6 @@ if (isset($_POST['submit'])) {
                 Iniciar Sesión
             </button>
         </form>
-    </div>
-    <div class="absolute bottom-4 right-4 w-40 h-24 rounded-lg overflow-hidden shadow-lg">
-        <video autoplay muted loop class="w-full h-full object-cover">
-            <source src="IA.mp4" type="video/mp4">
-            Tu navegador no soporta el elemento de video.
-        </video>
     </div>
 </body>
 </html>
