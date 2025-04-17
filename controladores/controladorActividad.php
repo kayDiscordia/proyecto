@@ -109,5 +109,37 @@ class controladorActividad {
             exit();
         }
     }
+    /**
+     * Obtiene actividades con filtros
+     */
+    public function obtenerActividadesFiltradas($estado = 'todos', $fechaInicio = '', $fechaFin = '', $categoria = 'todas') {
+        try {
+            error_log("Parámetros recibidos para filtros: Estado: $estado, Fecha Inicio: $fechaInicio, Fecha Fin: $fechaFin, Categoría: $categoria");
+            $actividades = $this->modelo->obtenerActividadesFiltradas($estado, $fechaInicio, $fechaFin, $categoria);
+            error_log("Actividades obtenidas del modelo: " . print_r($actividades, true));
+            return $actividades;
+        } catch (Exception $e) {
+            $this->registrarError($e->getMessage());
+            return ['error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Obtiene todas las categorías para el filtro o formulario
+     */
+    public function obtenerCategoriasActividades() {
+        try {
+            return $this->modelo->obtenerTodasCategorias();
+        } catch (Exception $e) {
+            $this->registrarError($e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Método privado para registrar errores en el log
+     */
+    private function registrarError($mensaje) {
+        error_log("Error en controladorActividad: " . $mensaje);
+    }
 }
-?>

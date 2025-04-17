@@ -51,47 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const fechaInicio = this.value;
                 document.getElementById('fechaCulminacion').min = fechaInicio;
             });
-
-            document.addEventListener('DOMContentLoaded', async function() {
-        const categoriaSelect = document.getElementById('idCategoria');
-        const departamentoId = "<?php echo isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : ''; ?>";
-
-        if (departamentoId) {
-            // Mostrar mensaje de carga
-            categoriaSelect.innerHTML = '<option value="">Cargando categorías...</option>';
-
-            try {
-                // Realizar la solicitud para obtener las categorías
-                const response = await fetch(`obtenerCategorias.php?idDepartamento=${departamentoId}`);
-                if (!response.ok) {
-                    throw new Error('Error al cargar categorías');
-                }
-
-                const categorias = await response.json();
-
-                // Limpiar el select y agregar las categorías
-                categoriaSelect.innerHTML = '<option value="">Seleccione una categoría</option>';
-                categorias.forEach(categoria => {
-                    const option = document.createElement('option');
-                    option.value = categoria.idCategoria;
-                    option.text = categoria.nombreCategoria;
-                    categoriaSelect.add(option);
-                });
-
-                // Restaurar selección previa si existe
-                <?php if (!empty($formData['idCategoria'])): ?>
-                    if (categoriaSelect.querySelector(`option[value="<?php echo $formData['idCategoria']; ?>"]`)) {
-                        categoriaSelect.value = "<?php echo $formData['idCategoria']; ?>";
-                    }
-                <?php endif; ?>
-            } catch (error) {
-                console.error('Error al cargar categorías:', error);
-                categoriaSelect.innerHTML = '<option value="">Error al cargar categorías</option>';
-            }
-        } else {
-            categoriaSelect.innerHTML = '<option value="">Seleccione un departamento primero</option>';
-        }
-    });
         });
     </script>
 </head>
@@ -129,11 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="hidden" id="idDepartamento" name="idDepartamento" 
                         value="<?php echo isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : ''; ?>">
 
-                        <!-- Select para categorías de actividades -->
+                        <!-- Campo de categorías -->
                         <div class="space-y-2">
                             <label for="idCategoria" class="block text-sm font-medium text-gray-700">Categoría de la Actividad</label>
                             <select id="idCategoria" name="idCategoria" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <option value="">Seleccione un departamento primero</option>
+                                <option value="">Cargando categorías...</option>
                             </select>
                         </div>
 
@@ -189,5 +148,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </main>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+    const categoriaSelect = document.getElementById('idCategoria');
+    const departamentoId = "<?php echo isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : ''; ?>";
+
+    if (departamentoId) {
+        try {
+            // Realizar la solicitud para obtener las categorías
+            const response = await fetch(`obtenerCategorias.php?idDepartamento=${departamentoId}`);
+            if (!response.ok) {
+                throw new Error('Error al cargar categorías');
+            }
+
+            const categorias = await response.json();
+
+            // Limpiar el select y agregar las categorías
+            categoriaSelect.innerHTML = '<option value="">Seleccione una categoría</option>';
+            categorias.forEach(categoria => {
+                const option = document.createElement('option');
+                option.value = categoria.idCategoria;
+                option.text = categoria.nombreCategoria;
+                categoriaSelect.add(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar categorías:', error);
+            categoriaSelect.innerHTML = '<option value="">Error al cargar categorías</option>';
+        }
+    } else {
+        categoriaSelect.innerHTML = '<option value="">No se encontró un departamento válido</option>';
+    }
+});
+    </script>
 </body>
 </html>

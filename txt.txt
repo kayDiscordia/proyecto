@@ -17,3 +17,10 @@ PD: abre el txt con visual para evitar morir de cancer
 [ese no explotó asi q victoria royale]
 
 -cambie tambien un par de cosas en los controladores de sesion y el modelo de actividades pero son estables asi q chill
+
+17/4/2025 Santiago agarra la pala nuevamente
+
+-Corregido el registrar actividad, ahora si funcion de cargar las categorias
+-agregar metodo de obtener actividades por empleado en el controlador y el modelo
+-verActividades ahora tiene un filtro y un descargar pdfs
+-el sidebar ahora muestre parcialmente una funcion para los empleados no-admins
