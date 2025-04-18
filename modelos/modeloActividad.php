@@ -46,6 +46,35 @@ class modeloActividad {
             }
         }
     }
+
+    public function editarActividad($idActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria) {
+        try {
+            $stmt = $this->db->getConnection()->prepare("
+                UPDATE actividades 
+                SET descripcionActividad = ?, fechaInicio = ?, fechaCulminacion = ?, idEmpleado = ?, idCategoria = ?
+                WHERE idActividad = ?
+            ");
+    
+            if (!$stmt) {
+                throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
+            }
+    
+            $stmt->bind_param("sssiii", $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria, $idActividad);
+    
+            if ($stmt->execute()) {
+                return true;
+            } else {
+                throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
+            }
+        } catch (Exception $e) {
+            throw new Exception("Error al editar la actividad: " . $e->getMessage());
+        } finally {
+            if (isset($stmt)) {
+                $stmt->close();
+            }
+        }
+    }
+
     public function obtenerActividades() {
         try {
             // Consulta SQL para obtener las actividades con información relacionada, ordenadas por ID
@@ -160,6 +189,51 @@ class modeloActividad {
         }
     }
 
+    public function obtenerDetallesActividad($idActividad) {
+        try {
+            $stmt = $this->db->getConnection()->prepare("
+                SELECT 
+                    a.idActividad,
+                    a.descripcionActividad,
+                    a.fechaInicio,
+                    a.fechaCulminacion,
+                    e.nombres AS nombreEmpleado,
+                    e.apellidos AS apellidoEmpleado,
+                    c.nombreCategoria AS categoriaActividad,
+                    es.nombreEstado AS estadoActividad
+                FROM 
+                    actividades a
+                JOIN 
+                    empleados e ON a.idEmpleado = e.idEmpleado
+                JOIN 
+                    categoriasactividades c ON a.idCategoria = c.idCategoria
+                JOIN 
+                    estadoActividad es ON a.idEstado = es.idEstado
+                WHERE 
+                    a.idActividad = ?
+            ");
+    
+            if (!$stmt) {
+                throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
+            }
+    
+            $stmt->bind_param("i", $idActividad);
+            $stmt->execute();
+            $result = $stmt->get_result();
+    
+            if ($result->num_rows === 0) {
+                throw new Exception("No se encontró la actividad con el ID proporcionado.");
+            }
+    
+            return $result->fetch_assoc();
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener los detalles de la actividad: " . $e->getMessage());
+        } finally {
+            if (isset($stmt)) {
+                $stmt->close();
+            }
+        }
+    }
 
     public function obtenerCategoriasPorDepartamento($idDepartamento) {
         try {

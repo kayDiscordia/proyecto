@@ -24,3 +24,7 @@ PD: abre el txt con visual para evitar morir de cancer
 -agregar metodo de obtener actividades por empleado en el controlador y el modelo
 -verActividades ahora tiene un filtro y un descargar pdfs
 -el sidebar ahora muestre parcialmente una funcion para los empleados no-admins
+
+18/4/2025 Santiago tarda hora y media en encontrar una palabra mal escrita
+
+-Agregado el boton de editar y ver mas detalles a la vista de verActividades

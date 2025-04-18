@@ -8,6 +8,14 @@ class controladorActividad {
         $this->modelo = new modeloActividad();
     }
 
+    public function obtenerDetallesActividad($idActividad) {
+        try {
+            return $this->modelo->obtenerDetallesActividad($idActividad);
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener los detalles de la actividad: " . $e->getMessage());
+        }
+    }
+
     public function manejarInsercionActividad() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
@@ -61,6 +69,14 @@ class controladorActividad {
             return $this->modelo->cancelarActividad($idActividad, $descripcionCancelacion);
         } catch (Exception $e) {
             return "Error: " . $e->getMessage();
+        }
+    }
+
+    public function editarActividad($idActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria) {
+        try {
+            return $this->modelo->editarActividad($idActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria);
+        } catch (Exception $e) {
+            throw new Exception("Error al editar la actividad: " . $e->getMessage());
         }
     }
 
