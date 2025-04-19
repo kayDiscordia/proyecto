@@ -227,10 +227,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 <td class="p-3 text-sm text-gray-700 flex space-x-2 justify-center">
                                                     <!-- Botón para Ver Detalles -->
                                                     <button type="button" onclick="mostrarDetalles(<?= htmlspecialchars(json_encode($actividad)) ?>)" 
-                                                            class="text-blue-600 hover:text-blue-800 bg-blue-100 px-3 py-1 rounded-md flex items-center">
-                                                        <i class="fas fa-eye mr-1"></i>Detalles
-                                                    </button>
-
+                                                        class="text-blue-600 hover:text-blue-800 bg-blue-100 px-3 py-1 rounded-md flex items-center">
+                                                    <i class="fas fa-eye mr-1"></i>Detalles
+                                                </button>
                                                     <!-- Botón para Editar -->
                                                     <button type="button" onclick="mostrarEditar(<?= htmlspecialchars(json_encode($actividad)) ?>)" 
                                                             class="text-yellow-600 hover:text-yellow-800 bg-yellow-100 px-3 py-1 rounded-md flex items-center">
@@ -256,6 +255,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p><strong>Empleado:</strong> <span id="detalleEmpleado"></span></p>
         <p><strong>Categoría:</strong> <span id="detalleCategoria"></span></p>
         <p><strong>Estado:</strong> <span id="detalleEstado"></span></p>
+        <p id="detalleDescripcionEstado" class="hidden">
+        <strong id="estadoLabel"></strong> <span id="estadoDescripcion"></span></p>
         <button onclick="cerrarModal('modalDetalles')" 
                 class="mt-4 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
             Cerrar
@@ -371,16 +372,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
         
         // MODALES (jaja chiste)
-            function mostrarDetalles(actividad) {
-        document.getElementById('detalleDescripcion').textContent = actividad.descripcionActividad;
-        document.getElementById('detalleFechaInicio').textContent = actividad.fechaInicio;
-        document.getElementById('detalleFechaCulminacion').textContent = actividad.fechaCulminacion;
-        document.getElementById('detalleEmpleado').textContent = actividad.nombreEmpleado;
-        document.getElementById('detalleCategoria').textContent = actividad.categoriaActividad;
-        document.getElementById('detalleEstado').textContent = actividad.estadoActividad;
-        document.getElementById('modalDetalles').classList.remove('hidden');
+        function mostrarDetalles(actividad) {
+    document.getElementById('detalleDescripcion').textContent = actividad.descripcionActividad;
+    document.getElementById('detalleFechaInicio').textContent = actividad.fechaInicio;
+    document.getElementById('detalleFechaCulminacion').textContent = actividad.fechaCulminacion;
+    document.getElementById('detalleEmpleado').textContent = actividad.nombreEmpleado;
+    document.getElementById('detalleCategoria').textContent = actividad.categoriaActividad;
+    document.getElementById('detalleEstado').textContent = actividad.estadoActividad;
+
+    const descripcionEstado = document.getElementById('detalleDescripcionEstado');
+    const estadoLabel = document.getElementById('estadoLabel');
+    const estadoDescripcion = document.getElementById('estadoDescripcion');
+
+    if (actividad.estadoActividad === 'Cancelada') {
+        descripcionEstado.classList.remove('hidden');
+        estadoLabel.textContent = 'Motivo de Cancelación:';
+        estadoDescripcion.textContent = actividad.descripcionCancelacion || 'No se proporcionó una descripción.';
+    } else if (actividad.estadoActividad === 'Completada') {
+        descripcionEstado.classList.remove('hidden');
+        estadoLabel.textContent = 'Descripción de Culminación:';
+        estadoDescripcion.textContent = actividad.descripcionCulminacion || 'No se proporcionó una descripción.';
+    } else {
+        descripcionEstado.classList.add('hidden');
     }
 
+    document.getElementById('modalDetalles').classList.remove('hidden');
+
+    document.getElementById('modalDetalles').classList.remove('hidden');
+}
     function mostrarEditar(actividad) {
     // Rellenar los campos del modal
     document.getElementById('editarIdActividad').value = actividad.idActividad;

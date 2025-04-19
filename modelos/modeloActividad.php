@@ -200,7 +200,12 @@ class modeloActividad {
                     e.nombres AS nombreEmpleado,
                     e.apellidos AS apellidoEmpleado,
                     c.nombreCategoria AS categoriaActividad,
-                    es.nombreEstado AS estadoActividad
+                    es.nombreEstado AS estadoActividad,
+                    CASE 
+                        WHEN es.nombreEstado = 'Cancelada' THEN a.descripcionCancelacion
+                        WHEN es.nombreEstado = 'Completada' THEN a.descripcionCulminacion
+                        ELSE NULL
+                    END AS descripcionEstado
                 FROM 
                     actividades a
                 JOIN 
