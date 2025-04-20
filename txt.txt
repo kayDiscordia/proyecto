@@ -28,3 +28,10 @@ PD: abre el txt con visual para evitar morir de cancer
 18/4/2025 Santiago tarda hora y media en encontrar una palabra mal escrita
 
 -Agregado el boton de editar y ver mas detalles a la vista de verActividades
+
+19/4/2025
+
+-se agrego un calendario y contadores de las actividades por estado en el panel de control
+-se agrego grafica trimestral en la seccion de reportes 
+-se aplico las validaciones al archivo modificar empleados
+
