@@ -1,7 +1,9 @@
 <?php
-$cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : null;
-$nombre = isset($_SESSION['nombre']) ? $_SESSION['nombre'] : null;
-$apellido = isset($_SESSION['apellido']) ? $_SESSION['apellido'] : null;
+$rol = isset($_SESSION['idRol']) ? $_SESSION['idRol'] : null;
+$nombre = isset($_SESSION['nombres']) ? $_SESSION['nombres'] : null;
+$apellido = isset($_SESSION['apellidos']) ? $_SESSION['apellidos'] : null;
+$departamento = isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : null;
+
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -20,6 +22,9 @@ $apellido = isset($_SESSION['apellido']) ? $_SESSION['apellido'] : null;
             <p class="text-lg font-bold text-gray-900">
                 Bienvenido, <?php echo htmlspecialchars($nombre . ' ' . $apellido); ?>!
             </p>
+          <!--  <p class="text-lg font-bold text-gray-900">
+                <?php // echo htmlspecialchars($departamento); ?>
+            </p> -->
         </div>
     <div class="flex-1 overflow-y-auto">
         <div class="p-4" x-show="!isCollapsed" x-transition>
@@ -30,7 +35,7 @@ $apellido = isset($_SESSION['apellido']) ? $_SESSION['apellido'] : null;
                         Dashboard
                     </button>
                 </div>
-                <?php if ($cargo === 'Gerente' || $cargo === 'Analista'): ?>
+                <?php if ($rol == 1): ?>
                 <div class="p-2 bg-white rounded-lg shadow">
                     <div x-data="{ open: false }">
                     
@@ -49,7 +54,23 @@ $apellido = isset($_SESSION['apellido']) ? $_SESSION['apellido'] : null;
                     </div>
                 </div>
                 <?php endif; ?>
-                <?php if ($cargo === 'Gerente'): ?>
+                <?php if ($rol == 2): ?>
+                <div class="p-2 bg-white rounded-lg shadow">
+                    <div x-data="{ open: false }">
+                    
+                        <button @click="open = !open" class="flex justify-between items-center w-full text-sm font-medium">
+                            <span><i class="fa-solid fa-clipboard p-2"></i>Gestionar Actividades</span>
+                            <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                        <div x-show="open" x-transition class="mt-2 space-y-2">
+                            <button onclick=location.href="../vistas/verActividades.php?idEmpleado=<?php echo $_SESSION['id']; ?>" class="w-full text-left px-2 py-1 text-sm hover:bg-gray-200 rounded flex items-center">
+                                Ver Actividades
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+                <?php if ($rol == 1): ?>
                 <div class="p-2 bg-white rounded-lg shadow">
                     <div x-data="{ open: false }">
                         <button @click="open = !open" class="flex justify-between items-center w-full text-sm font-medium">
@@ -77,8 +98,8 @@ $apellido = isset($_SESSION['apellido']) ? $_SESSION['apellido'] : null;
                             <button onclick=location.href="../vistas/listaEmpleado.php" class="w-full text-left px-2 py-1 text-sm hover:bg-gray-200 rounded flex items-center evaluar-empleado">
                                 Reportes por Empleado
                             </button>
-                            <button class="w-full text-left px-2 py-1 text-sm hover:bg-gray-200 rounded flex items-center evaluar-empleado">
-                                Reportes Trimestrales
+                            <button onclick=location.href="../vistas/graficaTrimestral.php" class="w-full text-left px-2 py-1 text-sm hover:bg-gray-200 rounded flex items-center evaluar-empleado">
+                                Reportes por trimestre  
                             </button>                                
                         </div>
                     </div>

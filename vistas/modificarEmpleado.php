@@ -35,6 +35,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'idEmpleado' => $idEmpleado
     ];
 
+    // Validación de campos
+    $nombreRegex = '/^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(\s[A-Za-zÁÉÍÓÚáéíóúÑñ]+){0,3}$/';
+    if (!preg_match($nombreRegex, $data['nombres']) || strlen($data['nombres']) > 25) {
+        echo "<p class='text-red-500 p-4'>El nombre debe contener un máximo de 25 caracteres, hasta 3 espacios, y no puede incluir caracteres especiales.</p>";
+        exit;
+    }
+
+    if (!preg_match($nombreRegex, $data['apellidos']) || strlen($data['apellidos']) > 25) {
+        echo "<p class='text-red-500 p-4'>El apellido debe contener un máximo de 25 caracteres, hasta 3 espacios, y no puede incluir caracteres especiales.</p>";
+        exit;
+    }
+
+    if (strlen($data['cedula']) > 8 || !ctype_digit($data['cedula'])) {
+        echo "<p class='text-red-500 p-4'>La cédula solo puede contener números y tener un máximo de 8 caracteres.</p>";
+        exit;
+    }
+
     try {
         $empleado->actualizarEmpleado($data);
         $_SESSION['success_message'] = "Empleado modificado correctamente.";
@@ -71,19 +88,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Nombres</label>
                                     <input type="text" name="nombres" value="<?= htmlspecialchars($empleadoData['nombres'] ?? '') ?>" 
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                           oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '').replace(/\s+/g, ' ').slice(0, 25); this.value = this.value.replace(/(^|\s)\S/g, l => l.toUpperCase())"
+                                           required>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Apellidos</label>
                                     <input type="text" name="apellidos" value="<?= htmlspecialchars($empleadoData['apellidos'] ?? '') ?>" 
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                           oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '').replace(/\s+/g, ' ').slice(0, 25); this.value = this.value.replace(/(^|\s)\S/g, l => l.toUpperCase())"
+                                           required>
                                 </div>
                             </div>
                             
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Cédula</label>
                                 <input type="text" name="cedula" value="<?= htmlspecialchars($empleadoData['cedula'] ?? '') ?>" readonly
-                                       class="w-full px-3 py-2 border border-gray-300 bg-gray-100 rounded-md text-sm">
+                                       class="w-full px-3 py-2 border border-gray-300 bg-gray-100 rounded-md text-sm"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8)">
                             </div>
                             
                             <div>
@@ -101,13 +123,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
                                 <input type="text" name="usuarioEmpleado" value="<?= htmlspecialchars($empleadoData['usuarioEmpleado'] ?? '') ?>" 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                       required>
                             </div>
                             
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
                                 <input type="password" name="contrasena" value="<?= htmlspecialchars($empleadoData['contrasena'] ?? '') ?>" 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                       required>
                             </div>
                         </div>
                         

@@ -8,6 +8,78 @@ class controladorActividad {
         $this->modelo = new modeloActividad();
     }
 
+    /**
+     * Obtiene datos para la gráfica trimestral.
+     */
+    public function obtenerDatosGraficaTrimestral($fechaInicio, $fechaFin) {
+        try {
+            // Validar fechas
+            if (empty($fechaInicio) || empty($fechaFin)) {
+                // Si no se proporcionan fechas, usar el trimestre actual
+                $fechaInicio = date('Y-m-01', strtotime('-2 months'));
+                $fechaFin = date('Y-m-t');
+            }
+
+            return $this->modelo->obtenerEstadisticasTrimestrales($fechaInicio, $fechaFin);
+        } catch (Exception $e) {
+            error_log("Error al obtener datos para gráfica trimestral: " . $e->getMessage());
+            return ['error' => $e->getMessage()];
+        }
+    }
+
+    public function obtenerDetallesActividad($idActividad) {
+        try {
+            return $this->modelo->obtenerDetallesActividad($idActividad);
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener los detalles de la actividad: " . $e->getMessage());
+        }
+    }
+    // Agregar este método al controlador
+public function obtenerActividadesParaCalendario() {
+    try {
+        $actividades = $this->modelo->obtenerActividadesParaCalendario();
+        
+        // Formatear para FullCalendar
+        $eventos = [];
+        foreach ($actividades as $actividad) {
+            $evento = [
+                'id' => $actividad['idActividad'],
+                'title' => $actividad['title'],
+                'start' => $actividad['start'],
+                'end' => $actividad['end'],
+                'extendedProps' => [
+                    'empleado' => $actividad['empleado'],
+                    'categoria' => $actividad['categoria'],
+                    'description' => $actividad['description'],
+                    'estado' => $actividad['estado'] // Asegurando que el estado se incluya
+                ]
+            ];
+            
+            // Asignar clase CSS según estado
+            switch ($actividad['estado']) {
+                case 'Completada':
+                    $evento['className'] = 'event-completada';
+                    $evento['color'] = '#10B981';
+                    break;
+                case 'Cancelada':
+                    $evento['className'] = 'event-cancelada';
+                    $evento['color'] = '#EF4444';
+                    break;
+                default: // En progreso
+                    $evento['className'] = 'event-en-progreso';
+                    $evento['color'] = '#F59E0B';
+            }
+            
+            $eventos[] = $evento;
+        }
+        
+        return $eventos;
+    } catch (Exception $e) {
+        error_log("Error al obtener actividades para calendario: " . $e->getMessage());
+        return ['error' => $e->getMessage()];
+    }
+}
+
     public function manejarInsercionActividad() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
@@ -64,6 +136,14 @@ class controladorActividad {
         }
     }
 
+    public function editarActividad($idActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria) {
+        try {
+            return $this->modelo->editarActividad($idActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria);
+        } catch (Exception $e) {
+            throw new Exception("Error al editar la actividad: " . $e->getMessage());
+        }
+    }
+
     public function culminarActividad($idActividad, $descripcionCulminacion) {
         try {
             return $this->modelo->culminarActividad($idActividad, $descripcionCulminacion);
@@ -109,5 +189,38 @@ class controladorActividad {
             exit();
         }
     }
+
+    /**
+     * Obtiene actividades con filtros
+     */
+    public function obtenerActividadesFiltradas($estado = 'todos', $fechaInicio = '', $fechaFin = '', $categoria = 'todas') {
+        try {
+            error_log("Parámetros recibidos para filtros: Estado: $estado, Fecha Inicio: $fechaInicio, Fecha Fin: $fechaFin, Categoría: $categoria");
+            $actividades = $this->modelo->obtenerActividadesFiltradas($estado, $fechaInicio, $fechaFin, $categoria);
+            error_log("Actividades obtenidas del modelo: " . print_r($actividades, true));
+            return $actividades;
+        } catch (Exception $e) {
+            $this->registrarError($e->getMessage());
+            return ['error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Obtiene todas las categorías para el filtro o formulario
+     */
+    public function obtenerCategoriasActividades() {
+        try {
+            return $this->modelo->obtenerTodasCategorias();
+        } catch (Exception $e) {
+            $this->registrarError($e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Método privado para registrar errores en el log
+     */
+    private function registrarError($mensaje) {
+        error_log("Error en controladorActividad: " . $mensaje);
+    }
 }
-?>

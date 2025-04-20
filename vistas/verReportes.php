@@ -183,12 +183,12 @@ try {
     <script>
         // Inicializar datepickers
         flatpickr("#fecha_inicio", {
-            dateFormat: "Y-m-d",
+            dateFormat: "d-m-Y",
             allowInput: true
         });
         
         flatpickr("#fecha_fin", {
-            dateFormat: "Y-m-d",
+            dateFormat: "d-m-Y",
             allowInput: true
         });
 //exportar los datos filtrados de la tabla a PDF utilizando la biblioteca jsPDF
