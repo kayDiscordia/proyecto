@@ -8,7 +8,7 @@ $controladorActividad = new controladorActividad();
 if (isset($_SESSION['id'])) {
     $user = $select->SelectuserByuser($_SESSION['id']);
 } else {
-    header('location: ../index.php');
+    header(header: 'location: ../index.php');
 }
 
 // Obtener actividades para el calendario
@@ -154,22 +154,21 @@ foreach ($actividades as $actividad) {
         <?php include 'modulos/sidebar.php'; ?>
         <!-- Main content -->
         <main class="flex-1 p-6 overflow-y-auto">
-            <h1 class="text-2xl font-semibold mb-4">Panel de Control</h1>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div class="p-4 rounded-lg shadow bg-yellow-100 text-yellow-800">
-                    <h2 class="text-lg font-semibold mb-2">En Proceso</h2>
-                    <p><?= $enProceso ?> actividades</p>
-                </div>
-                <div class="p-4 rounded-lg shadow bg-red-100 text-red-800">
-                    <h2 class="text-lg font-semibold mb-2">Canceladas</h2>
-                    <p><?= $canceladas ?> actividades</p>
-                </div>
-                <div class="p-4 rounded-lg shadow bg-green-100 text-green-800">
-                    <h2 class="text-lg font-semibold mb-2">Culminadas</h2>
-                    <p><?= $culminadas ?> actividades</p>
-                </div>
-            </div>
-            
+            <h1 class="text-2xl font-semibold mb-4">Panel de Actividades</h1>
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="p-4 rounded-lg shadow event-en-progreso">
+        <h2 class="text-lg font-semibold mb-2 text-white">Actividades en Proceso</h2>
+        <p class="text-white"><?= $enProceso ?> actividades</p>
+    </div>
+    <div class="p-4 rounded-lg shadow event-cancelada">
+        <h2 class="text-lg font-semibold mb-2 text-white">Actividades Canceladas</h2>
+        <p class="text-white"><?= $canceladas ?> actividades</p>
+    </div>
+    <div class="p-4 rounded-lg shadow event-completada">
+        <h2 class="text-lg font-semibold mb-2 text-white">Actividades Culminadas</h2>
+        <p class="text-white"><?= $culminadas ?> actividades</p>
+    </div>
+</div>
             <!-- Sección del Calendario -->
             <div class="bg-white p-4 rounded-lg shadow mb-6">
                 <h2 class="text-xl font-semibold mb-4">Calendario de Actividades</h2>
