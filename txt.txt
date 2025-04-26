@@ -35,3 +35,9 @@ PD: abre el txt con visual para evitar morir de cancer
 -se agrego grafica trimestral en la seccion de reportes 
 -se aplico las validaciones al archivo modificar empleados
 
+26/04/2025
+
+-cambiado el color del panel de contro para que concuerden con todos los demas colores(rojo,amarillo,verde) LISTO
+-reorganizado verreportes(orientacion de quien son las actividades) LISTO
+-ya ser mas especifico en el panel de control(ser mas especificos con los indicadores) LISTO
+-asignar actividades solo a los empleados activos LISTO
