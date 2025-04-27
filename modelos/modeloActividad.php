@@ -8,7 +8,6 @@ class modeloActividad {
         $this->db = new Database();
     }
 
-    
     // Método para insertar una actividad
     public function insertarActividad($descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria) {
         try {
@@ -77,7 +76,6 @@ class modeloActividad {
 
     public function obtenerActividades() {
         try {
-            // Consulta SQL para obtener las actividades con información relacionada, ordenadas por ID
             $query = "
                 SELECT 
                     a.idActividad,
@@ -101,15 +99,12 @@ class modeloActividad {
                     a.idActividad ASC
             ";
     
-            // Ejecutar la consulta
             $result = $this->db->getConnection()->query($query);
     
-            // Verificar si la consulta fue exitosa
             if (!$result) {
                 throw new Exception("Error al ejecutar la consulta: " . $this->db->getConnection()->error);
             }
     
-            // Obtener los resultados como un array asociativo
             $actividades = [];
             while ($row = $result->fetch_assoc()) {
                 $actividades[] = $row;
@@ -123,7 +118,6 @@ class modeloActividad {
 
     public function cancelarActividad($idActividad, $descripcionCancelacion) {
         try {
-            // Preparar la consulta SQL
             $stmt = $this->db->getConnection()->prepare("
                 UPDATE actividades 
                 SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Cancelada'),
@@ -131,24 +125,20 @@ class modeloActividad {
                 WHERE idActividad = ?
             ");
 
-            // Verificar si la preparación de la consulta fue exitosa
             if (!$stmt) {
                 throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
             }
 
-            // Vincular los parámetros
             $stmt->bind_param("si", $descripcionCancelacion, $idActividad);
 
-            // Ejecutar la consulta
             if ($stmt->execute()) {
-                return true; // Actualización exitosa
+                return true;
             } else {
                 throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
             }
         } catch (Exception $e) {
             throw new Exception("Error al cancelar la actividad: " . $e->getMessage());
         } finally {
-            // Cerrar la declaración
             if (isset($stmt)) {
                 $stmt->close();
             }
@@ -157,7 +147,6 @@ class modeloActividad {
 
     public function culminarActividad($idActividad, $descripcionCulminacion) {
         try {
-            // Preparar la consulta SQL
             $stmt = $this->db->getConnection()->prepare("
                 UPDATE actividades 
                 SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Completada'),
@@ -165,24 +154,20 @@ class modeloActividad {
                 WHERE idActividad = ?
             ");
 
-            // Verificar si la preparación de la consulta fue exitosa
             if (!$stmt) {
                 throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
             }
 
-            // Vincular los parámetros
             $stmt->bind_param("si", $descripcionCulminacion, $idActividad);
 
-            // Ejecutar la consulta
             if ($stmt->execute()) {
-                return true; // Actualización exitosa
+                return true;
             } else {
                 throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
             }
         } catch (Exception $e) {
             throw new Exception("Error al culminar la actividad: " . $e->getMessage());
         } finally {
-            // Cerrar la declaración
             if (isset($stmt)) {
                 $stmt->close();
             }
@@ -200,12 +185,7 @@ class modeloActividad {
                     e.nombres AS nombreEmpleado,
                     e.apellidos AS apellidoEmpleado,
                     c.nombreCategoria AS categoriaActividad,
-                    es.nombreEstado AS estadoActividad,
-                    CASE 
-                        WHEN es.nombreEstado = 'Cancelada' THEN a.descripcionCancelacion
-                        WHEN es.nombreEstado = 'Completada' THEN a.descripcionCulminacion
-                        ELSE NULL
-                    END AS descripcionEstado
+                    es.nombreEstado AS estadoActividad
                 FROM 
                     actividades a
                 JOIN 
@@ -242,11 +222,11 @@ class modeloActividad {
 
     public function obtenerCategoriasPorDepartamento($idDepartamento) {
         try {
-            $stmt = $this->db->getConnection()->prepare(
-                "SELECT idCategoria, nombreCategoria 
-                 FROM categoriasactividades 
-                 WHERE idDepartamento = ?"
-            );
+            $stmt = $this->db->getConnection()->prepare("
+                SELECT idCategoria, nombreCategoria 
+                FROM categoriasactividades 
+                WHERE idDepartamento = ?
+            ");
             $stmt->bind_param("i", $idDepartamento);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -262,7 +242,6 @@ class modeloActividad {
         }
     }
 
-    // Método para obtener actividades con filtros
     public function obtenerActividadesFiltradas($estado = 'todos', $fechaInicio = '', $fechaFin = '', $categoria = 'todas') {
         try {
             $query = "
@@ -295,10 +274,10 @@ class modeloActividad {
                 $types .= 's';
             }
 
-            if ($categoria !== 'todas' && $categoria !== '') {
+            if ($categoria !== 'todas') {
                 $conditions[] = "c.idCategoria = ?";
                 $params[] = $categoria;
-                $types .= 'i'; // ID de categoría es numérico
+                $types .= 'i';
             }
 
             if (!empty($fechaInicio)) {
@@ -320,8 +299,8 @@ class modeloActividad {
             $query .= " ORDER BY a.fechaInicio DESC";
 
             $stmt = $this->db->getConnection()->prepare($query);
-            
-            if ($stmt === false) {
+
+            if (!$stmt) {
                 throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
             }
 
@@ -337,7 +316,6 @@ class modeloActividad {
                 $actividades[] = $row;
             }
 
-            $stmt->close();
             return $actividades;
 
         } catch (Exception $e) {
@@ -345,7 +323,6 @@ class modeloActividad {
         }
     }
 
-    // Método para obtener todas las categorías con ID
     public function obtenerTodasCategorias() {
         try {
             $query = "SELECT idCategoria, nombreCategoria FROM categoriasactividades";
@@ -363,6 +340,112 @@ class modeloActividad {
             return $categorias;
         } catch (Exception $e) {
             throw new Exception("Error en modelo: " . $e->getMessage());
+        }
+    }
+    // Agregar este método al modelo
+public function obtenerActividadesParaCalendario() {
+    try {
+        $query = "
+            SELECT 
+                a.idActividad,
+                a.descripcionActividad AS title,
+                a.fechaInicio AS start,
+                a.fechaCulminacion AS end,
+                es.nombreEstado AS estado,
+                a.descripcionActividad AS description,
+                CONCAT(e.nombres, ' ', e.apellidos) AS empleado,
+                c.nombreCategoria AS categoria
+            FROM 
+                actividades a
+            JOIN 
+                estadoActividad es ON a.idEstado = es.idEstado
+            JOIN 
+                empleados e ON a.idEmpleado = e.idEmpleado
+            JOIN 
+                categoriasactividades c ON a.idCategoria = c.idCategoria
+            ORDER BY 
+                a.fechaInicio
+        ";
+
+        $result = $this->db->getConnection()->query($query);
+
+        if (!$result) {
+            throw new Exception("Error al ejecutar la consulta: " . $this->db->getConnection()->error);
+        }
+
+        $actividades = [];
+        while ($row = $result->fetch_assoc()) {
+            $actividades[] = $row;
+        }
+
+        return $actividades;
+    } catch (Exception $e) {
+        throw new Exception("Error al obtener actividades para calendario: " . $e->getMessage());
+    }
+}
+
+    public function obtenerEstadisticasTrimestrales($fechaInicio, $fechaFin) {
+        try {
+            if (!strtotime($fechaInicio) || !strtotime($fechaFin)) {
+                throw new Exception("Fechas no válidas");
+            }
+
+            $stmt = $this->db->getConnection()->prepare("
+                SELECT 
+                    es.nombreEstado AS estado,
+                    COUNT(a.idActividad) AS cantidad,
+                    DATE_FORMAT(a.fechaInicio, '%Y-%m') AS mes
+                FROM 
+                    actividades a
+                JOIN 
+                    estadoActividad es ON a.idEstado = es.idEstado
+                WHERE 
+                    a.fechaInicio BETWEEN ? AND ?
+                GROUP BY 
+                    es.nombreEstado, DATE_FORMAT(a.fechaInicio, '%Y-%m')
+                ORDER BY 
+                    mes, es.nombreEstado
+            ");
+
+            if (!$stmt) {
+                throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
+            }
+
+            $stmt->bind_param("ss", $fechaInicio, $fechaFin);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            $datos = [];
+            while ($row = $result->fetch_assoc()) {
+                $datos[] = $row;
+            }
+
+            $stmt->close();
+
+            $trimestres = [];
+            foreach ($datos as $dato) {
+                $fecha = DateTime::createFromFormat('Y-m', $dato['mes']);
+                $anio = $fecha->format('Y');
+                $trimestre = ceil($fecha->format('m') / 3);
+                $clave = $anio . '-T' . $trimestre;
+
+                if (!isset($trimestres[$clave])) {
+                    $trimestres[$clave] = [
+                        'trimestre' => $clave,
+                        'Completada' => 0,
+                        'Cancelada' => 0,
+                        'En progreso' => 0,
+                        'total' => 0
+                    ];
+                }
+
+                $trimestres[$clave][$dato['estado']] = (int)$dato['cantidad'];
+                $trimestres[$clave]['total'] += (int)$dato['cantidad'];
+            }
+
+            return array_values($trimestres);
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener estadísticas trimestrales: " . $e->getMessage());
         }
     }
 }

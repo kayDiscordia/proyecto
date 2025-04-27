@@ -120,19 +120,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                         
-                        <!-- Select para empleados -->
-                        <div class="space-y-2">
-                            <label for="idEmpleado" class="block text-sm font-medium text-gray-700">Empleado Receptor</label>
-                            <select id="idEmpleado" name="idEmpleado" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <option value="">Seleccione un empleado</option>
-                                <?php foreach ($empleados as $empleado): ?>
-                                    <option value="<?php echo $empleado['idEmpleado']; ?>" 
-                                        <?php echo (!empty($formData['idEmpleado']) && $formData['idEmpleado'] == $empleado['idEmpleado'] ? 'selected' : ''); ?>>
-                                        <?php echo htmlspecialchars($empleado['nombres'] . ' ' . $empleado['apellidos']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                      <!-- Select para empleados -->
+<div class="space-y-2">
+    <label for="idEmpleado" class="block text-sm font-medium text-gray-700">Empleado Receptor</label>
+    <select id="idEmpleado" name="idEmpleado" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+        <option value="">Seleccione un empleado</option>
+        <?php foreach ($empleados as $empleado): ?>
+            <?php if ($empleado['estado_nombre'] === 'Activo'): // Cambia 'Activo' según corresponda en tu base de datos ?>
+                <option value="<?php echo $empleado['idEmpleado']; ?>" 
+                    <?php echo (!empty($formData['idEmpleado']) && $formData['idEmpleado'] == $empleado['idEmpleado'] ? 'selected' : ''); ?>>
+                    <?php echo htmlspecialchars($empleado['nombres'] . ' ' . $empleado['apellidos']); ?>
+                </option>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </select>
+</div>
 
                         <br>
                         <div class="flex justify-between">

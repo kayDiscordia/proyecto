@@ -98,8 +98,8 @@ $departamento = isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento']
                             <button onclick=location.href="../vistas/listaEmpleado.php" class="w-full text-left px-2 py-1 text-sm hover:bg-gray-200 rounded flex items-center evaluar-empleado">
                                 Reportes por Empleado
                             </button>
-                            <button class="w-full text-left px-2 py-1 text-sm hover:bg-gray-200 rounded flex items-center evaluar-empleado">
-                                Reportes Trimestrales
+                            <button onclick=location.href="../vistas/graficaTrimestral.php" class="w-full text-left px-2 py-1 text-sm hover:bg-gray-200 rounded flex items-center evaluar-empleado">
+                                Reportes por trimestre  
                             </button>                                
                         </div>
                     </div>

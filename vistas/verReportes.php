@@ -54,27 +54,15 @@ try {
         <?php include 'modulos/sidebar.php' ?>
 
         <!-- Main container -->
-        <main class="flex-1 p-6 overflow-y-auto bg-e8eeff">
-            <div class="flex justify-between items-center mb-6">
-                <a href="listaEmpleado.php" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                    Volver a la lista
-                </a>
-                
-                <div class="text-right">
-                    <h2 class="text-xl font-semibold"><?= htmlspecialchars($infoEmpleado->nombres . ' ' . $infoEmpleado->apellidos) ?></h2>
-                    <div class="flex gap-4 justify-end mt-1 text-sm">
-                        <span class="text-gray-600">
-                            <i class="fas fa-id-card mr-1"></i> <?= htmlspecialchars($infoEmpleado->cedula) ?>
-                        </span>
-                        <span class="text-gray-600">
-                            <i class="fas fa-user mr-1"></i> <?= htmlspecialchars($infoEmpleado->usuarioEmpleado) ?>
-                        </span>
-                    </div>
-                </div>
-            </div>
+       <main class="flex-1 p-6 overflow-y-auto bg-e8eeff">
+    <div class="flex justify-between items-center mb-6">
+        <a href="listaEmpleado.php" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Volver a la lista
+        </a>
+    </div>
             
             <!-- Filtros -->
             <div class="bg-white p-4 rounded-lg shadow mb-6">
@@ -118,13 +106,13 @@ try {
             </div>
             
             <!-- Resultados -->
-            <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Actividades Asignadas</h3>
-                    <span class="text-sm text-gray-500">
-                        <?= count($actividades) ?> actividad(es) encontrada(s)
-                    </span>
-                </div>
+           <div class="bg-white p-6 rounded-lg shadow">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Actividades asignadas a <?= htmlspecialchars($infoEmpleado->nombres . ' ' . $infoEmpleado->apellidos) ?></h3>
+            <span class="text-sm text-gray-500">
+                <?= count($actividades) ?> actividad(es) encontrada(s)
+            </span>
+        </div>
                 
                 <?php if (empty($actividades)): ?>
                     <div class="text-center py-2">
@@ -183,12 +171,12 @@ try {
     <script>
         // Inicializar datepickers
         flatpickr("#fecha_inicio", {
-            dateFormat: "d-m-Y",
+            dateFormat: "Y-m-d",
             allowInput: true
         });
         
         flatpickr("#fecha_fin", {
-            dateFormat: "d-m-Y",
+            dateFormat: "Y-m-d",
             allowInput: true
         });
 //exportar los datos filtrados de la tabla a PDF utilizando la biblioteca jsPDF

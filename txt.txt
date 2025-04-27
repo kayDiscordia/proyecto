@@ -28,3 +28,20 @@ PD: abre el txt con visual para evitar morir de cancer
 18/4/2025 Santiago tarda hora y media en encontrar una palabra mal escrita
 
 -Agregado el boton de editar y ver mas detalles a la vista de verActividades
+
+19/4/2025
+
+-se agrego un calendario y contadores de las actividades por estado en el panel de control
+-se agrego grafica trimestral en la seccion de reportes 
+-se aplico las validaciones al archivo modificar empleados
+
+26/04/2025
+
+-cambiado el color del panel de contro para que concuerden con todos los demas colores(rojo,amarillo,verde) LISTO
+-reorganizado verreportes(orientacion de quien son las actividades) LISTO
+-ya ser mas especifico en el panel de control(ser mas especificos con los indicadores) LISTO
+-asignar actividades solo a los empleados activos LISTO
+
+26/04/2025 Santiago es tonto y no le furula el git
+
+AAAAAAAAAAAAAAAAAAAA
