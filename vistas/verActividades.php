@@ -40,6 +40,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
+
+try {
+    // Actualizar estados de las actividades según las fechas
+    $actividadController->actualizarEstadosActividades();
+
+    // Obtener categorías, empleados y actividades filtradas
+    $categorias = $actividadController->obtenerCategoriasActividades();
+    $empleados = $empleadoController->obtenerEmpleados();
+    $actividades = $actividadController->obtenerActividadesFiltradas(
+        $_GET['estado'] ?? 'todos',
+        $_GET['fechaInicio'] ?? '',
+        $_GET['fechaFin'] ?? '',
+        $_GET['categoria'] ?? 'todas'
+    );
+} catch (Exception $e) {
+    die("Error: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
@@ -132,6 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <option value="Completada" <?= $estadoFiltro === 'Completada' ? 'selected' : '' ?>>Completadas</option>
                             <option value="En progreso" <?= $estadoFiltro === 'En progreso' ? 'selected' : '' ?>>En progreso</option>
                             <option value="Cancelada" <?= $estadoFiltro === 'Cancelada' ? 'selected' : '' ?>>Canceladas</option>
+                            <option value="Pendiente" <?= $estadoFiltro === 'Retraso' ? 'selected' : '' ?>>Retraso</option>
                         </select>
                     </div>
                     

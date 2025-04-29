@@ -45,3 +45,9 @@ PD: abre el txt con visual para evitar morir de cancer
 26/04/2025 Santiago es tonto y no le furula el git
 
 AAAAAAAAAAAAAAAAAAAA
+
+28/4/2025
+
+-Se agregaron los estados de Por Inciar y Retraso
+-El sistema automaticamente asigna estos dos estados basado en la fecha de culminacion e inicio
+-Se agrego localmente una tarea programada para que realice el cambio cada dia a las 8 PM. (Tambien lo hace al usar el comando)

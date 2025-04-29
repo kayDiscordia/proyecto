@@ -6,7 +6,7 @@ require_once '../modelos/Database.php';
 require_once '../login/functionLogin.php';
 
 // Verificar si el usuario está logueado
- // Asegúrate de iniciar la sesión
+// Asegúrate de iniciar la sesión
 $select = new Login();
 if (isset($_SESSION['id'])) {
     $user = $select->SelectuserByuser($_SESSION['id']);
@@ -28,6 +28,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,38 +37,39 @@ try {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script defer>
-    class EmpleadoSearch {
-        constructor(inputId, tableId) {
-            this.input = document.getElementById(inputId);
-            this.table = document.getElementById(tableId);
-            this.rows = this.table.querySelectorAll('tbody tr');
-            this.init();
+        class EmpleadoSearch {
+            constructor(inputId, tableId) {
+                this.input = document.getElementById(inputId);
+                this.table = document.getElementById(tableId);
+                this.rows = this.table.querySelectorAll('tbody tr');
+                this.init();
+            }
+
+            init() {
+                this.input.addEventListener('keyup', () => this.buscarEmpleado());
+            }
+
+            buscarEmpleado() {
+                const query = this.input.value.toLowerCase();
+                this.rows.forEach(row => {
+                    const nombres = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const apellidos = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    if (nombres.includes(query) || apellidos.includes(query)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
         }
 
-        init() {
-            this.input.addEventListener('keyup', () => this.buscarEmpleado());
-        }
-
-        buscarEmpleado() {
-            const query = this.input.value.toLowerCase();
-            this.rows.forEach(row => {
-                const nombres = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-                const apellidos = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-                if (nombres.includes(query) || apellidos.includes(query)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
-    }
-
-    // Inicializar la funcionalidad de búsqueda
-    document.addEventListener('DOMContentLoaded', () => {
-        new EmpleadoSearch('searchInput', 'employeeTable');
-    });
-</script>
+        // Inicializar la funcionalidad de búsqueda
+        document.addEventListener('DOMContentLoaded', () => {
+            new EmpleadoSearch('searchInput', 'employeeTable');
+        });
+    </script>
 </head>
+
 <body class="bg-[#E8EEFF]">
     <div class="flex h-screen" x-data="{ isCollapsed: false }">
         <!-- Sidebar -->
@@ -108,7 +110,7 @@ try {
                                     <td class="p-3 text-sm text-gray-700">
                                         <a href="verReportes.php?idEmpleado=<?= $datos['idEmpleado'] ?>" class="text-blue-600 hover:text-blue-800">
                                             <i class="fas fa-file-alt"></i> Ver Reporte </a>
-                                       
+
                                     </td>
                                 </tr>
                             <?php } ?>
@@ -116,12 +118,13 @@ try {
                     </tbody>
                 </table>
                 <br>
-                 <div class="flex justify-between col-span-2">
+                <div class="flex justify-between col-span-2">
                     <a href="home.php" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
                         Salir
                     </a>
-            </div>
+                </div>
         </main>
     </div>
 </body>
+
 </html>

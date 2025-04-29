@@ -22,10 +22,11 @@ class controladorActividad {
 
             return $this->modelo->obtenerEstadisticasTrimestrales($fechaInicio, $fechaFin);
         } catch (Exception $e) {
-            error_log("Error al obtener datos para gráfica trimestral: " . $e->getMessage());
+            error_log("Error al   datos para gráfica trimestral: " . $e->getMessage());
             return ['error' => $e->getMessage()];
         }
     }
+    
 
     public function obtenerDetallesActividad($idActividad) {
         try {
@@ -190,11 +191,23 @@ public function obtenerActividadesParaCalendario() {
         }
     }
 
+     public function actualizarEstadosActividades() {
+        try {
+            return $this->modelo->actualizarEstadosActividades();
+        } catch (Exception $e) {
+            error_log("Error al actualizar estados de actividades: " . $e->getMessage());
+            return false;
+        }
+    }
+
     /**
-     * Obtiene actividades con filtros
+     * Obtiene actividades con filtros, actualizando estados primero
      */
     public function obtenerActividadesFiltradas($estado = 'todos', $fechaInicio = '', $fechaFin = '', $categoria = 'todas') {
         try {
+            // Actualizar estados primero
+            $this->actualizarEstadosActividades();
+            
             error_log("Parámetros recibidos para filtros: Estado: $estado, Fecha Inicio: $fechaInicio, Fecha Fin: $fechaFin, Categoría: $categoria");
             $actividades = $this->modelo->obtenerActividadesFiltradas($estado, $fechaInicio, $fechaFin, $categoria);
             error_log("Actividades obtenidas del modelo: " . print_r($actividades, true));

@@ -241,7 +241,64 @@ class modeloActividad {
             throw new Exception("Error al obtener categorías: " . $e->getMessage());
         }
     }
-
+    public function actualizarEstadosActividades() {
+        try {
+            $fechaActual = date('Y-m-d');
+    
+            // Cambiar estado a "Retraso" si la fecha de culminación ya pasó
+            $stmtRetraso = $this->db->getConnection()->prepare("
+                UPDATE actividades 
+                SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Retraso')
+                WHERE idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'En progreso')
+                AND fechaCulminacion < ?
+            ");
+            $stmtRetraso->bind_param("s", $fechaActual);
+            if (!$stmtRetraso->execute()) {
+                throw new Exception("Error al actualizar actividades a 'Retraso': " . $stmtRetraso->error);
+            }
+    
+            // Cambiar estado a "Por iniciar" si la fecha de inicio aún no ha llegado
+            $stmtPorIniciar = $this->db->getConnection()->prepare("
+                UPDATE actividades 
+                SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Por iniciar')
+                WHERE idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'En progreso')
+                AND fechaInicio > ?
+            ");
+            $stmtPorIniciar->bind_param("s", $fechaActual);
+            if (!$stmtPorIniciar->execute()) {
+                throw new Exception("Error al actualizar actividades a 'Por iniciar': " . $stmtPorIniciar->error);
+            }
+    
+            // Cambiar estado a "En progreso" si la fecha de inicio ya ha llegado
+            $stmtEnProgreso = $this->db->getConnection()->prepare("
+                UPDATE actividades 
+                SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'En progreso')
+                WHERE idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Por iniciar')
+                AND fechaInicio <= ?
+            ");
+            $stmtEnProgreso->bind_param("s", $fechaActual);
+            if (!$stmtEnProgreso->execute()) {
+                throw new Exception("Error al actualizar actividades a 'En progreso': " . $stmtEnProgreso->error);
+            }
+    
+            return true;
+        } catch (Exception $e) {
+            throw new Exception("Error al actualizar estados de actividades: " . $e->getMessage());
+        } finally {
+            if (isset($stmtRetraso)) {
+                $stmtRetraso->close();
+            }
+            if (isset($stmtPorIniciar)) {
+                $stmtPorIniciar->close();
+            }
+            if (isset($stmtEnProgreso)) {
+                $stmtEnProgreso->close();
+            }
+        }
+    }
+    /**
+     * Obtiene actividades con filtros
+     */
     public function obtenerActividadesFiltradas($estado = 'todos', $fechaInicio = '', $fechaFin = '', $categoria = 'todas') {
         try {
             $query = "
@@ -322,6 +379,7 @@ class modeloActividad {
             throw new Exception("Error al obtener actividades filtradas: " . $e->getMessage());
         }
     }
+    
 
     public function obtenerTodasCategorias() {
         try {

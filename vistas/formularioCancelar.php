@@ -12,12 +12,14 @@ if (!$idActividad) {
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cancelar Actividad</title>
     <link rel="stylesheet" href="CSS/output.css">
 </head>
+
 <body class="bg-[#E8EEFF]">
     <div class="flex items-center justify-center min-h-screen">
         <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
@@ -36,4 +38,5 @@ if (!$idActividad) {
         </div>
     </div>
 </body>
+
 </html>
