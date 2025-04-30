@@ -36,7 +36,6 @@ foreach ($actividades as $actividad) {
     <!-- FullCalendar CSS -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
     <link rel="stylesheet" href="CSS/output.css">
-  <!-- Reemplaza la sección de estilos de tu home.php con esto: -->
 <style>
     /* Estilos para colores según estado */
     .bg-yellow-100 { background-color: #FEF3C7; }
@@ -46,7 +45,6 @@ foreach ($actividades as $actividad) {
     .bg-green-100 { background-color: #D1FAE5; }
     .text-green-800 { color: #065F46; }
     
-    /* Estilos para el calendario - Versión corregida */
     #calendar {
         max-width: 1100px;
         margin: 0 auto;

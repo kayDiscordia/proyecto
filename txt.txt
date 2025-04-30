@@ -51,3 +51,9 @@ AAAAAAAAAAAAAAAAAAAA
 -Se agregaron los estados de Por Inciar y Retraso
 -El sistema automaticamente asigna estos dos estados basado en la fecha de culminacion e inicio
 -Se agrego localmente una tarea programada para que realice el cambio cada dia a las 8 PM. (Tambien lo hace al usar el comando)
+
+29/4/2025 La pala se alza
+
+-Ahora el modal de detalles muestra la descripcion del estado
+-Ahora culminar y cancelar usan un modal bonito
+-Intente cambiar en el modal de detalles el Descripcion estado pero eso causa que el html se cierre (??????)

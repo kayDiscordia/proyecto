@@ -61,6 +61,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -69,62 +70,74 @@ try {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+
     <style>
         /* Estilo para el fondo del modal */
-    #modalDetalles, #modalEditar {
-        position: fixed;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
-        z-index: 50;
-    }
+        #modalDetalles,
+        #modalCulminar,
+        #modalCancelar,
+        #modalEditar {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Fondo semitransparente */
+            z-index: 50;
+        }
 
-    /* Ocultar los modales por defecto */
-    #modalDetalles.hidden, #modalEditar.hidden {
-        display: none;
-    }
+        /* Ocultar los modales por defecto */
+        #modalDetalles.hidden,
+        #modalCulminar.hidden,
+        #modalCancelar.hidden,
+        #modalEditar.hidden {
+            display: none;
+        }
 
-    /* Estilo para el contenido del modal */
-    .modal-content {
-        background-color: white;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        width: 50%; /* Ancho del modal */
-        max-width: 600px;
-    }
+        /* Estilo para el contenido del modal */
+        .modal-content {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 50%;
+            /* Ancho del modal */
+            max-width: 600px;
+        }
 
-    /* Botón de cerrar */
-    .modal-close {
-        margin-top: 1rem;
-        padding: 0.5rem 1rem;
-        background-color: #e5e7eb; /* Gris claro */
-        color: #374151; /* Gris oscuro */
-        border-radius: 0.375rem;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
+        /* Botón de cerrar */
+        .modal-close {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: #e5e7eb;
+            /* Gris claro */
+            color: #374151;
+            /* Gris oscuro */
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
 
-    .modal-close:hover {
-        background-color: #d1d5db; /* Gris más claro */
-    }
+        .modal-close:hover {
+            background-color: #d1d5db;
+            /* Gris más claro */
+        }
     </style>
 
 </head>
+
 <body class="bg-[#E8EEFF]">
     <div class="flex h-screen" x-data="{ isCollapsed: false }">
         <!-- Sidebar -->
         <?php include 'modulos/sidebar.php' ?>
-        
+
         <!-- Main container -->
         <main class="flex-1 p-6 overflow-y-auto bg-e8eeff">
-            
+
             <h2 class="text-2xl font-semibold mb-4">Lista de Actividades</h2>
             <!-- Filtros -->
-             
+
             <div class="bg-white p-4 rounded-lg shadow mb-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-3">Filtrar Actividades</h3>
                 <form method="GET" action="" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -140,7 +153,7 @@ try {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    
+
                     <!-- Filtro por estado -->
                     <div>
                         <label for="estado" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
@@ -149,23 +162,24 @@ try {
                             <option value="Completada" <?= $estadoFiltro === 'Completada' ? 'selected' : '' ?>>Completadas</option>
                             <option value="En progreso" <?= $estadoFiltro === 'En progreso' ? 'selected' : '' ?>>En progreso</option>
                             <option value="Cancelada" <?= $estadoFiltro === 'Cancelada' ? 'selected' : '' ?>>Canceladas</option>
-                            <option value="Pendiente" <?= $estadoFiltro === 'Retraso' ? 'selected' : '' ?>>Retraso</option>
+                            <option value="Retraso" <?= $estadoFiltro === 'Retraso' ? 'selected' : '' ?>>Retraso</option>
+                            <option value="Por iniciar" <?= $estadoFiltro === 'Por iniciar' ? 'selected' : '' ?>>Por iniciar</option>
                         </select>
                     </div>
-                    
+
                     <!-- Filtro por rango de fechas -->
                     <div>
                         <label for="fechaInicio" class="block text-sm font-medium text-gray-700 mb-1">Fecha Inicio</label>
-                        <input type="date" id="fechaInicio" name="fechaInicio" value="<?= htmlspecialchars($fechaInicio) ?>" 
-                               class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        <input type="date" id="fechaInicio" name="fechaInicio" value="<?= htmlspecialchars($fechaInicio) ?>"
+                            class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    
+
                     <div>
                         <label for="fechaFin" class="block text-sm font-medium text-gray-700 mb-1">Fecha Fin</label>
-                        <input type="date" id="fechaFin" name="fechaFin" value="<?= htmlspecialchars($fechaFin) ?>" 
-                               class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        <input type="date" id="fechaFin" name="fechaFin" value="<?= htmlspecialchars($fechaFin) ?>"
+                            class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    
+
                     <div class="md:col-span-3 flex justify-end space-x-3">
                         <button type="submit" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 flex items-center">
                             <i class="fas fa-filter mr-2"></i>Filtrar
@@ -212,51 +226,48 @@ try {
                                 <?php foreach ($actividades as $index => $actividad): ?>
                                     <tr class="hover:bg-gray-50">
                                         <td class="p-3 text-sm text-gray-700"><?= $index + 1 ?></td>
-                                        <td class="p-3 text-sm text-gray-700 hidden"><?= htmlspecialchars($actividad['idActividad']) ?></td>
                                         <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($actividad['categoriaActividad']) ?></td>
                                         <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($actividad['descripcionActividad']) ?></td>
                                         <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($actividad['nombreEmpleado']) ?></td>
                                         <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($actividad['fechaInicio']) ?></td>
                                         <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($actividad['fechaCulminacion']) ?></td>
                                         <td class="p-3 text-sm text-gray-700">
-                                            <span class="<?= 
-                                                $actividad['estadoActividad'] == 'En progreso' ? 'bg-yellow-100 text-yellow-800' : 
-                                                ($actividad['estadoActividad'] == 'Cancelada' ? 'bg-red-100 text-red-800' : 
-                                                ($actividad['estadoActividad'] == 'Completada' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'))
-                                            ?> px-2 py-1 rounded-lg text-xs">
+                                            <span class="<?=
+                                                            $actividad['estadoActividad'] == 'En progreso' ? 'bg-yellow-100 text-yellow-800' : ($actividad['estadoActividad'] == 'Cancelada' ? 'bg-red-100 text-red-800' : ($actividad['estadoActividad'] == 'Completada' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'))
+                                                            ?> px-2 py-1 rounded-lg text-xs">
                                                 <?= htmlspecialchars($actividad['estadoActividad']) ?>
                                             </span>
                                         </td>
                                         <td class="p-3 text-sm text-gray-700 flex space-x-2 justify-center">
                                             <?php if ($actividad['estadoActividad'] !== 'Completada' && $actividad['estadoActividad'] !== 'Cancelada'): ?>
                                                 <!-- Botón para Cancelar -->
-                                                <a href="formularioCancelar.php?idActividad=<?= $actividad['idActividad'] ?>" 
-                                                   class="text-red-600 hover:text-red-800 bg-red-100 px-3 py-1 rounded-md flex items-center">
+                                                <button type="button" onclick="mostrarCancelar(<?= htmlspecialchars(json_encode($actividad)) ?>)"
+                                                    class="text-red-600 hover:text-red-800 bg-red-100 px-3 py-1 rounded-md flex items-center">
                                                     <i class="fas fa-times mr-1"></i>Cancelar
-                                                </a>
+                                                </button>
                                                 <!-- Botón para Culminar -->
-                                                <a href="formularioCulminar.php?idActividad=<?= $actividad['idActividad'] ?>" 
-                                                   class="text-green-600 hover:text-green-800 bg-green-100 px-3 py-1 rounded-md flex items-center">
+                                                <button type="button" onclick="mostrarCulminar(<?= htmlspecialchars(json_encode($actividad)) ?>)"
+                                                    class="text-green-600 hover:text-green-800 bg-green-100 px-3 py-1 rounded-md flex items-center">
                                                     <i class="fas fa-check mr-1"></i>Culminar
-                                                </a>
+                                                </button>
                                             <?php endif; ?>
                                             <!-- Despues de Culminar o Cancelar, mostrar botón para ver detalles y editar -->
                                             <?php if ($actividad['estadoActividad'] == 'Completada' or $actividad['estadoActividad'] == 'Cancelada'): ?>
-                                                <td class="p-3 text-sm text-gray-700 flex space-x-2 justify-center">
-                                                    <!-- Botón para Ver Detalles -->
-                                                    <button type="button" onclick="mostrarDetalles(<?= htmlspecialchars(json_encode($actividad)) ?>)" 
-                                                            class="text-blue-600 hover:text-blue-800 bg-blue-100 px-3 py-1 rounded-md flex items-center">
-                                                        <i class="fas fa-eye mr-1"></i>Detalles
-                                                    </button>
+                                        <td class="p-3 text-sm text-gray-700 flex space-x-2 justify-center">
+                                            <!-- Botón para Ver Detalles -->
+                                            <button type="button" onclick="mostrarDetalles(<?= htmlspecialchars(json_encode($actividad)) ?>)"
+                                                class="text-blue-600 hover:text-blue-800 bg-blue-100 px-3 py-1 rounded-md flex items-center">
+                                                <i class="fas fa-eye mr-1"></i>Detalles
+                                            </button>
 
-                                                    <!-- Botón para Editar -->
-                                                    <button type="button" onclick="mostrarEditar(<?= htmlspecialchars(json_encode($actividad)) ?>)" 
-                                                            class="text-yellow-600 hover:text-yellow-800 bg-yellow-100 px-3 py-1 rounded-md flex items-center">
-                                                        <i class="fas fa-edit mr-1"></i>Editar
-                                                    </button>
-                                                </td>
-                                            <?php endif; ?>
+                                            <!-- Botón para Editar -->
+                                            <button type="button" onclick="mostrarEditar(<?= htmlspecialchars(json_encode($actividad)) ?>)"
+                                                class="text-yellow-600 hover:text-yellow-800 bg-yellow-100 px-3 py-1 rounded-md flex items-center">
+                                                <i class="fas fa-edit mr-1"></i>Editar
+                                            </button>
                                         </td>
+                                    <?php endif; ?>
+                                    </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -266,69 +277,113 @@ try {
             </div>
             <!-- Modal para Ver Detalles -->
             <div id="modalDetalles" class="fixed inset-0 flex items-center justify-center hidden">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
-        <h2 class="text-xl font-semibold mb-4">Detalles de la Actividad</h2>
-        <p><strong>Descripción:</strong> <span id="detalleDescripcion"></span></p>
-        <p><strong>Fecha Inicio:</strong> <span id="detalleFechaInicio"></span></p>
-        <p><strong>Fecha Culminación:</strong> <span id="detalleFechaCulminacion"></span></p>
-        <p><strong>Empleado:</strong> <span id="detalleEmpleado"></span></p>
-        <p><strong>Categoría:</strong> <span id="detalleCategoria"></span></p>
-        <p><strong>Estado:</strong> <span id="detalleEstado"></span></p>
-        <button onclick="cerrarModal('modalDetalles')" 
-                class="mt-4 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
-            Cerrar
-        </button>
-    </div>
-</div>
+                <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
+                    <h2 class="text-xl font-semibold mb-4">Detalles de la Actividad</h2>
+                    <p><strong>Descripción:</strong> <span id="detalleDescripcion"></span></p>
+                    <p><strong>Fecha Inicio:</strong> <span id="detalleFechaInicio"></span></p>
+                    <p><strong>Fecha Culminación:</strong> <span id="detalleFechaCulminacion"></span></p>
+                    <p><strong>Empleado:</strong> <span id="detalleEmpleado"></span></p>
+                    <p><strong>Categoría:</strong> <span id="detalleCategoria"></span></p>
+                    <p><strong>Estado:</strong> <span id="detalleEstado"></span></p>
+                    <p id="detalleDescripcionEstado" class="hidden"><strong>Descripción del Estado:</strong> <span></span></p>
+                    <button onclick="cerrarModal('modalDetalles')"
+                        class="mt-4 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
 
             <!-- Modal para Editar -->
             <div id="modalEditar" class="fixed inset-0 flex items-center justify-center hidden">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
-        <h2 class="text-xl font-semibold mb-4">Editar Actividad</h2>
-        <form id="formEditar" method="POST">
-            <input type="hidden" id="editarIdActividad" name="idActividad">
-            
-            <label>Descripción:</label>
-            <input type="text" id="editarDescripcion" name="descripcionActividad" class="w-full p-2 border rounded mb-4" required>
-            
-            <label>Fecha Inicio:</label>
-            <input type="date" id="editarFechaInicio" name="fechaInicio" class="w-full p-2 border rounded mb-4" required>
-            
-            <label>Fecha Culminación:</label>
-            <input type="date" id="editarFechaCulminacion" name="fechaCulminacion" class="w-full p-2 border rounded mb-4" required>
-            
-            <label>Empleado:</label>
-            <select id="editarEmpleado" name="idEmpleado" class="w-full p-2 border rounded mb-4" required>
-                <option value="">Seleccione un empleado</option>
-                <?php foreach ($empleados as $empleado): ?>
-                    <option value="<?= htmlspecialchars($empleado['idEmpleado']) ?>">
-                        <?= htmlspecialchars($empleado['nombres'] . ' ' . $empleado['apellidos']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            
-            <label>Categoría:</label>
-            <select id="editarCategoria" name="idCategoria" class="w-full p-2 border rounded mb-4" required>
-                <option value="">Seleccione una categoría</option>
-                <?php foreach ($categorias as $categoria): ?>
-                    <option value="<?= htmlspecialchars($categoria['idCategoria']) ?>">
-                        <?= htmlspecialchars($categoria['nombreCategoria']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            
-            <div class="flex justify-end space-x-2">
-                <button type="button" onclick="cerrarModal('modalEditar')" 
-                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
-                    Cancelar
-                </button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Guardar Cambios
-                </button>
+                <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
+                    <h2 class="text-xl font-semibold mb-4">Editar Actividad</h2>
+                    <form id="formEditar" method="POST">
+                        <input type="hidden" id="editarIdActividad" name="idActividad">
+
+                        <label>Descripción:</label>
+                        <input type="text" id="editarDescripcion" name="descripcionActividad" class="w-full p-2 border rounded mb-4" required>
+
+                        <label>Fecha Inicio:</label>
+                        <input type="date" id="editarFechaInicio" name="fechaInicio" class="w-full p-2 border rounded mb-4" required>
+
+                        <label>Fecha Culminación:</label>
+                        <input type="date" id="editarFechaCulminacion" name="fechaCulminacion" class="w-full p-2 border rounded mb-4" required>
+
+                        <label>Empleado:</label>
+                        <select id="editarEmpleado" name="idEmpleado" class="w-full p-2 border rounded mb-4" required>
+                            <option value="">Seleccione un empleado</option>
+                            <?php foreach ($empleados as $empleado): ?>
+                                <option value="<?= htmlspecialchars($empleado['idEmpleado']) ?>">
+                                    <?= htmlspecialchars($empleado['nombres'] . ' ' . $empleado['apellidos']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+
+                        <label>Categoría:</label>
+                        <select id="editarCategoria" name="idCategoria" class="w-full p-2 border rounded mb-4" required>
+                            <option value="">Seleccione una categoría</option>
+                            <?php foreach ($categorias as $categoria): ?>
+                                <option value="<?= htmlspecialchars($categoria['idCategoria']) ?>">
+                                    <?= htmlspecialchars($categoria['nombreCategoria']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+
+                        <div class="flex justify-end space-x-2">
+                            <button type="button" onclick="cerrarModal('modalEditar')"
+                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </form>
-    </div>
-</div>
+            <!-- Modal para Culminar -->
+            <div id="modalCulminar" class="fixed inset-0 flex items-center justify-center hidden">
+                <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
+                    <h2 class="text-xl font-semibold mb-4">Culminar Actividad</h2>
+                    <form id="formCulminar" method="POST" action="formularioCulminar.php">
+                        <input type="hidden" id="culminarIdActividad" name="idActividad">
+
+                        <label for="culminarDescripcion" class="block text-sm font-medium text-gray-700 mb-1">Descripción de Culminación</label>
+                        <textarea id="culminarDescripcion" name="descripcionCulminacion" rows="4" class="w-full p-2 border rounded-md mb-4" required></textarea>
+
+                        <div class="flex justify-end space-x-2">
+                            <button type="button" onclick="cerrarModal('modalCulminar')" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                Culminar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para Cancelar -->
+            <div id="modalCancelar" class="fixed inset-0 flex items-center justify-center hidden">
+                <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
+                    <h2 class="text-xl font-semibold mb-4">Cancelar Actividad</h2>
+                    <form id="formCancelar" method="POST" action="formularioCancelar.php">
+                        <input type="hidden" id="cancelarIdActividad" name="idActividad">
+
+                        <label for="cancelarDescripcion" class="block text-sm font-medium text-gray-700 mb-1">Motivo de Cancelación</label>
+                        <textarea id="cancelarDescripcion" name="descripcionCancelacion" rows="4" class="w-full p-2 border rounded-md mb-4" required></textarea>
+
+                        <div class="flex justify-end space-x-2">
+                            <button type="button" onclick="cerrarModal('modalCancelar')" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                Confirmar Cancelación
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </main>
     </div>
     <!-- Scripts -->
@@ -341,15 +396,17 @@ try {
             dateFormat: "d-m-Y",
             allowInput: true
         });
-        
+
         flatpickr("#fechaFin", {
             dateFormat: "d-m-Y",
             allowInput: true
         });
 
         // Exportar datos a PDF
-        document.getElementById('exportarPDF').addEventListener('click', function () {
-            const { jsPDF } = window.jspdf;
+        document.getElementById('exportarPDF').addEventListener('click', function() {
+            const {
+                jsPDF
+            } = window.jspdf;
             const doc = new jsPDF();
 
             // Título
@@ -380,47 +437,75 @@ try {
                 body: rows,
                 startY: 30,
                 theme: 'striped',
-                headStyles: { fillColor: [22, 160, 133] },
-                styles: { fontSize: 10 },
+                headStyles: {
+                    fillColor: [22, 160, 133]
+                },
+                styles: {
+                    fontSize: 10
+                },
             });
 
             // Descargar el archivo PDF
             doc.save('reporte_actividades.pdf');
         });
-        
+
         // MODALES (jaja chiste)
-            function mostrarDetalles(actividad) {
-        document.getElementById('detalleDescripcion').textContent = actividad.descripcionActividad;
-        document.getElementById('detalleFechaInicio').textContent = actividad.fechaInicio;
-        document.getElementById('detalleFechaCulminacion').textContent = actividad.fechaCulminacion;
-        document.getElementById('detalleEmpleado').textContent = actividad.nombreEmpleado;
-        document.getElementById('detalleCategoria').textContent = actividad.categoriaActividad;
-        document.getElementById('detalleEstado').textContent = actividad.estadoActividad;
-        document.getElementById('modalDetalles').classList.remove('hidden');
-    }
+        function mostrarDetalles(actividad) {
+            document.getElementById('detalleDescripcion').textContent = actividad.descripcionActividad;
+            document.getElementById('detalleFechaInicio').textContent = actividad.fechaInicio;
+            document.getElementById('detalleFechaCulminacion').textContent = actividad.fechaCulminacion;
+            document.getElementById('detalleEmpleado').textContent = actividad.nombreEmpleado;
+            document.getElementById('detalleCategoria').textContent = actividad.categoriaActividad;
+            document.getElementById('detalleEstado').textContent = actividad.estadoActividad;
 
-    function mostrarEditar(actividad) {
-    // Rellenar los campos del modal
-    document.getElementById('editarIdActividad').value = actividad.idActividad;
-    document.getElementById('editarDescripcion').value = actividad.descripcionActividad;
-    document.getElementById('editarFechaInicio').value = actividad.fechaInicio;
-    document.getElementById('editarFechaCulminacion').value = actividad.fechaCulminacion;
+            const descripcionEstado = document.getElementById('detalleDescripcionEstado');
+            if (actividad.estadoActividad === 'Cancelada') {
+                descripcionEstado.classList.remove('hidden');
+                descripcionEstado.querySelector('span').textContent = actividad.descripcionCancelacion || 'No se proporcionó una descripción.';
+            } else if (actividad.estadoActividad === 'Completada') {
+                descripcionEstado.classList.remove('hidden');
+                descripcionEstado.querySelector('span').textContent = actividad.descripcionCulminacion || 'No se proporcionó una descripción.';
+            } else {
+                descripcionEstado.classList.add('hidden');
+                descripcionEstado.querySelector('span').textContent = '';
+            }
 
-    // Seleccionar el empleado correspondiente
-    const empleadoSelect = document.getElementById('editarEmpleado');
-    empleadoSelect.value = actividad.idEmpleado;
+            document.getElementById('modalDetalles').classList.remove('hidden');
+        }
 
-    // Seleccionar la categoría correspondiente
-    const categoriaSelect = document.getElementById('editarCategoria');
-    categoriaSelect.value = actividad.idCategoria;
+        function mostrarEditar(actividad) {
+            // Rellenar los campos del modal
+            document.getElementById('editarIdActividad').value = actividad.idActividad;
+            document.getElementById('editarDescripcion').value = actividad.descripcionActividad;
+            document.getElementById('editarFechaInicio').value = actividad.fechaInicio;
+            document.getElementById('editarFechaCulminacion').value = actividad.fechaCulminacion;
 
-    // Mostrar el modal
-    document.getElementById('modalEditar').classList.remove('hidden');
-}
+            // Seleccionar el empleado correspondiente
+            const empleadoSelect = document.getElementById('editarEmpleado');
+            empleadoSelect.value = actividad.idEmpleado;
 
-function cerrarModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
-}
+            // Seleccionar la categoría correspondiente
+            const categoriaSelect = document.getElementById('editarCategoria');
+            categoriaSelect.value = actividad.idCategoria;
+
+            // Mostrar el modal
+            document.getElementById('modalEditar').classList.remove('hidden');
+        }
+
+        function mostrarCulminar(actividad) {
+            document.getElementById('culminarIdActividad').value = actividad.idActividad;
+            document.getElementById('modalCulminar').classList.remove('hidden');
+        }
+
+        function mostrarCancelar(actividad) {
+            document.getElementById('cancelarIdActividad').value = actividad.idActividad;
+            document.getElementById('modalCancelar').classList.remove('hidden');
+        }
+
+        function cerrarModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
     </script>
 </body>
+
 </html>

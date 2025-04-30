@@ -309,7 +309,9 @@ class modeloActividad {
                     a.fechaCulminacion,
                     e.nombres AS nombreEmpleado,
                     es.nombreEstado AS estadoActividad,
-                    c.nombreCategoria AS categoriaActividad
+                    c.nombreCategoria AS categoriaActividad,
+                    a.descripcionCancelacion,
+                    a.descripcionCulminacion
                 FROM 
                     actividades a
                 JOIN 

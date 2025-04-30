@@ -38,6 +38,8 @@ if (isset($_POST['submit'])) {
     } else {
         $error = "Por favor, complete todos los campos.";
     }
+
+    date_default_timezone_set('America/Caracas');
 }
 ?>
 <!DOCTYPE html>

@@ -1,12 +1,17 @@
-<?php
-require_once '../modelos/Database.php';
+<<?php
 require_once '../modelos/modeloActividad.php';
 
-$idActividad = $_GET['idActividad'] ?? null;
+$idActividad = $_POST['idActividad'];
+$descripcionCulminacion = $_POST['descripcionCulminacion'];
 
-if (!$idActividad) {
-    header("Location: verActividades.php?error=ID de actividad no proporcionado");
+$modeloActividad = new modeloActividad();
+
+try {
+    $modeloActividad->culminarActividad($idActividad, $descripcionCulminacion);
+    header('Location: verActividades.php?mensaje=Culminada');
     exit();
+} catch (Exception $e) {
+    die("Error al culminar la actividad: " . $e->getMessage());
 }
 ?>
 
