@@ -48,23 +48,55 @@ class modeloActividad {
 
     public function editarActividad($idActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria) {
         try {
+            // Obtener los valores actuales de la actividad
+            $stmt = $this->db->getConnection()->prepare("
+                SELECT descripcionActividad, fechaInicio, fechaCulminacion, idEmpleado, idCategoria
+                FROM actividades
+                WHERE idActividad = ?
+            ");
+            $stmt->bind_param("i", $idActividad);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $actividadActual = $result->fetch_assoc();
+            $stmt->close();
+    
+            // Comparar los valores actuales con los nuevos
+            $cambios = [];
+            if ($actividadActual['descripcionActividad'] !== $descripcionActividad) {
+                $cambios[] = "Descripción cambiada de '{$actividadActual['descripcionActividad']}' a '$descripcionActividad'";
+            }
+            if ($actividadActual['fechaInicio'] !== $fechaInicio) {
+                $cambios[] = "Fecha de inicio cambiada de '{$actividadActual['fechaInicio']}' a '$fechaInicio'";
+            }
+            if ($actividadActual['fechaCulminacion'] !== $fechaCulminacion) {
+                $cambios[] = "Fecha de culminación cambiada de '{$actividadActual['fechaCulminacion']}' a '$fechaCulminacion'";
+            }
+            if ($actividadActual['idEmpleado'] != $idEmpleado) {
+                $cambios[] = "Empleado reasignado de ID {$actividadActual['idEmpleado']} a ID $idEmpleado";
+            }
+            if ($actividadActual['idCategoria'] != $idCategoria) {
+                $cambios[] = "Categoría cambiada de ID {$actividadActual['idCategoria']} a ID $idCategoria";
+            }
+    
+            // Actualizar los valores en la base de datos
             $stmt = $this->db->getConnection()->prepare("
                 UPDATE actividades 
                 SET descripcionActividad = ?, fechaInicio = ?, fechaCulminacion = ?, idEmpleado = ?, idCategoria = ?
                 WHERE idActividad = ?
             ");
-    
-            if (!$stmt) {
-                throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
-            }
-    
             $stmt->bind_param("sssiii", $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria, $idActividad);
     
-            if ($stmt->execute()) {
-                return true;
-            } else {
+            if (!$stmt->execute()) {
                 throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
             }
+    
+            // Registrar los cambios en el historial
+            if (!empty($cambios)) {
+                $detalles = implode("; ", $cambios);
+                $this->registrarCambioEnHistorial($idActividad, "Edición de actividad", $detalles);
+            }
+    
+            return true;
         } catch (Exception $e) {
             throw new Exception("Error al editar la actividad: " . $e->getMessage());
         } finally {
@@ -296,9 +328,62 @@ class modeloActividad {
             }
         }
     }
-    /**
-     * Obtiene actividades con filtros
-     */
+
+    public function obtenerHistorialActividad($idActividad) {
+        try {
+            $query = "
+                SELECT 
+                    h.evento,
+                    h.fecha,
+                    h.detalles
+                FROM 
+                    historialactividades h
+                WHERE 
+                    h.idActividad = ?
+                ORDER BY 
+                    h.fecha ASC
+            ";
+    
+            $stmt = $this->db->getConnection()->prepare($query);
+            if (!$stmt) {
+                throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
+            }
+    
+            $stmt->bind_param("i", $idActividad);
+            $stmt->execute();
+            $result = $stmt->get_result();
+    
+            $historial = [];
+            while ($row = $result->fetch_assoc()) {
+                $historial[] = $row;
+            }
+    
+            return $historial;
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener el historial de la actividad: " . $e->getMessage());
+        }
+    }
+
+    public function registrarCambioEnHistorial($idActividad, $evento, $detalles) {
+        try {
+            $query = "
+                INSERT INTO historialactividades (idActividad, evento, fecha, detalles)
+                VALUES (?, ?, NOW(), ?)
+            ";
+    
+            $stmt = $this->db->getConnection()->prepare($query);
+            if (!$stmt) {
+                throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
+            }
+    
+            $stmt->bind_param("iss", $idActividad, $evento, $detalles);
+            $stmt->execute();
+            $stmt->close();
+        } catch (Exception $e) {
+            throw new Exception("Error al registrar el cambio en el historial: " . $e->getMessage());
+        }
+    }
+
     public function obtenerActividadesFiltradas($estado = 'todos', $fechaInicio = '', $fechaFin = '', $categoria = 'todas') {
         try {
             $query = "

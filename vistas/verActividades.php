@@ -209,65 +209,62 @@ try {
                     </div>
                 <?php else: ?>
                     <div class="overflow-x-auto">
-                        <table id="tablaActividades" class="w-full border-collapse">
+                        <table id="tablaActividades" class="w-full border-collapse border border-gray-300">
                             <thead class="bg-gray-200">
                                 <tr>
-                                    <th class="p-3 text-left text-sm font-semibold text-gray-700">N°</th>
-                                    <th class="p-3 text-left text-sm font-semibold text-gray-700">Categoría</th>
-                                    <th class="p-3 text-left text-sm font-semibold text-gray-700">Descripción</th>
-                                    <th class="p-3 text-left text-sm font-semibold text-gray-700">Empleado Responsable</th>
-                                    <th class="p-3 text-left text-sm font-semibold text-gray-700">Fecha Inicio</th>
-                                    <th class="p-3 text-left text-sm font-semibold text-gray-700">Fecha Fin</th>
-                                    <th class="p-3 text-left text-sm font-semibold text-gray-700">Estado</th>
-                                    <th class="p-3 text-center text-sm font-semibold text-gray-700">Acciones</th>
+                                    <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">N°</th>
+                                    <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Categoría</th>
+                                    <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Descripción</th>
+                                    <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Empleado Responsable</th>
+                                    <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Fecha Inicio</th>
+                                    <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Fecha Fin</th>
+                                    <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Estado</th>
+                                    <th class="p-3 text-center text-sm font-semibold text-gray-700 border border-gray-300">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
                                 <?php foreach ($actividades as $index => $actividad): ?>
                                     <tr class="hover:bg-gray-50">
-                                        <td class="p-3 text-sm text-gray-700"><?= $index + 1 ?></td>
-                                        <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($actividad['categoriaActividad']) ?></td>
-                                        <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($actividad['descripcionActividad']) ?></td>
-                                        <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($actividad['nombreEmpleado']) ?></td>
-                                        <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($actividad['fechaInicio']) ?></td>
-                                        <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($actividad['fechaCulminacion']) ?></td>
-                                        <td class="p-3 text-sm text-gray-700">
+                                        <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= $index + 1 ?></td>
+                                        <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['categoriaActividad']) ?></td>
+                                        <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['descripcionActividad']) ?></td>
+                                        <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['nombreEmpleado']) ?></td>
+                                        <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['fechaInicio']) ?></td>
+                                        <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['fechaCulminacion']) ?></td>
+                                        <td class="p-3 text-sm text-gray-700 border border-gray-300">
                                             <span class="<?=
-                                                            $actividad['estadoActividad'] == 'En progreso' ? 'bg-yellow-100 text-yellow-800' : ($actividad['estadoActividad'] == 'Cancelada' ? 'bg-red-100 text-red-800' : ($actividad['estadoActividad'] == 'Completada' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'))
+                                                            $actividad['estadoActividad'] == 'En progreso' ? 'bg-yellow-100 text-yellow-800' : ($actividad['estadoActividad'] == 'Cancelada' ? 'bg-red-100 text-red-800' : ($actividad['estadoActividad'] == 'Completada' ? 'bg-green-100 text-green-800' :
+                                                                'bg-gray-100 text-gray-800'))
                                                             ?> px-2 py-1 rounded-lg text-xs">
                                                 <?= htmlspecialchars($actividad['estadoActividad']) ?>
                                             </span>
                                         </td>
-                                        <td class="p-3 text-sm text-gray-700 flex space-x-2 justify-center">
+                                        <td class="p-3 text-sm text-gray-700 border border-gray-300 flex justify-center space-x-2">
                                             <?php if ($actividad['estadoActividad'] !== 'Completada' && $actividad['estadoActividad'] !== 'Cancelada'): ?>
-                                                <!-- Botón para Cancelar -->
                                                 <button type="button" onclick="mostrarCancelar(<?= htmlspecialchars(json_encode($actividad)) ?>)"
                                                     class="text-red-600 hover:text-red-800 bg-red-100 px-3 py-1 rounded-md flex items-center">
                                                     <i class="fas fa-times mr-1"></i>Cancelar
                                                 </button>
-                                                <!-- Botón para Culminar -->
                                                 <button type="button" onclick="mostrarCulminar(<?= htmlspecialchars(json_encode($actividad)) ?>)"
                                                     class="text-green-600 hover:text-green-800 bg-green-100 px-3 py-1 rounded-md flex items-center">
                                                     <i class="fas fa-check mr-1"></i>Culminar
                                                 </button>
                                             <?php endif; ?>
-                                            <!-- Despues de Culminar o Cancelar, mostrar botón para ver detalles y editar -->
-                                            <?php if ($actividad['estadoActividad'] == 'Completada' or $actividad['estadoActividad'] == 'Cancelada'): ?>
-                                        <td class="p-3 text-sm text-gray-700 flex space-x-2 justify-center">
-                                            <!-- Botón para Ver Detalles -->
                                             <button type="button" onclick="mostrarDetalles(<?= htmlspecialchars(json_encode($actividad)) ?>)"
                                                 class="text-blue-600 hover:text-blue-800 bg-blue-100 px-3 py-1 rounded-md flex items-center">
                                                 <i class="fas fa-eye mr-1"></i>Detalles
                                             </button>
-
                                             <!-- Botón para Editar -->
                                             <button type="button" onclick="mostrarEditar(<?= htmlspecialchars(json_encode($actividad)) ?>)"
                                                 class="text-yellow-600 hover:text-yellow-800 bg-yellow-100 px-3 py-1 rounded-md flex items-center">
                                                 <i class="fas fa-edit mr-1"></i>Editar
                                             </button>
+                                            <button>
+                                                <a href="verHistorial.php?id=<?= htmlspecialchars($actividad['idActividad']) ?>" class="text-gray-600 hover:text-gray-800 bg-gray-100 px-3 py-1 rounded-md flex items-center">
+                                                    <i class="fas fa-history mr-1"></i>Historial
+                                                </a>
+                                            </button>
                                         </td>
-                                    <?php endif; ?>
-                                    </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -275,8 +272,10 @@ try {
                     </div>
                 <?php endif; ?>
             </div>
+
+
             <!-- Modal para Ver Detalles -->
-            <div id="modalDetalles" class="fixed inset-0 flex items-center justify-center hidden">
+            <div id="modalDetalles" class="fixed inset-0 items-center justify-center hidden">
                 <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
                     <h2 class="text-xl font-semibold mb-4">Detalles de la Actividad</h2>
                     <p><strong>Descripción:</strong> <span id="detalleDescripcion"></span></p>
@@ -294,7 +293,7 @@ try {
             </div>
 
             <!-- Modal para Editar -->
-            <div id="modalEditar" class="fixed inset-0 flex items-center justify-center hidden">
+            <div id="modalEditar" class="fixed inset-0  items-center justify-center hidden">
                 <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
                     <h2 class="text-xl font-semibold mb-4">Editar Actividad</h2>
                     <form id="formEditar" method="POST">
@@ -342,7 +341,7 @@ try {
                 </div>
             </div>
             <!-- Modal para Culminar -->
-            <div id="modalCulminar" class="fixed inset-0 flex items-center justify-center hidden">
+            <div id="modalCulminar" class="fixed inset-0  items-center justify-center hidden">
                 <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
                     <h2 class="text-xl font-semibold mb-4">Culminar Actividad</h2>
                     <form id="formCulminar" method="POST" action="formularioCulminar.php">
@@ -364,7 +363,7 @@ try {
             </div>
 
             <!-- Modal para Cancelar -->
-            <div id="modalCancelar" class="fixed inset-0 flex items-center justify-center hidden">
+            <div id="modalCancelar" class="fixed inset-0  items-center justify-center hidden">
                 <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
                     <h2 class="text-xl font-semibold mb-4">Cancelar Actividad</h2>
                     <form id="formCancelar" method="POST" action="formularioCancelar.php">
@@ -416,7 +415,7 @@ try {
             doc.text('Generado el: <?= date("Y-m-d H:i:s") ?>', 10, 20);
 
             // Obtener datos de la tabla
-            const headers = ["N°", "Categoría", "Descripción", "Fecha Inicio", "Fecha Fin", "Estado"];
+            const headers = ["N°", "Categoría", "Descripción", "Empleado Responsable", "Fecha Inicio", "Fecha Fin", "Estado"];
             const rows = [];
             const tableRows = document.querySelectorAll('#tablaActividades tbody tr');
 

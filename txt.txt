@@ -57,3 +57,9 @@ AAAAAAAAAAAAAAAAAAAA
 -Ahora el modal de detalles muestra la descripcion del estado
 -Ahora culminar y cancelar usan un modal bonito
 -Intente cambiar en el modal de detalles el Descripcion estado pero eso causa que el html se cierre (??????)
+
+2/5/2025 La venganza de la pala
+
+-Se agrego la tabla historialactividad
+-ahora se registran los cambios que se le hagan a la actividad mediante el modal de editar (se registran muy troglodita pero es algo)
+-se agrego un boton para acceder al historial desde verActividades

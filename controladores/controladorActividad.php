@@ -138,11 +138,8 @@ public function obtenerActividadesParaCalendario() {
     }
 
     public function editarActividad($idActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria) {
-        try {
-            return $this->modelo->editarActividad($idActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria);
-        } catch (Exception $e) {
-            throw new Exception("Error al editar la actividad: " . $e->getMessage());
-        }
+        $modeloActividad = new modeloActividad();
+        return $modeloActividad->editarActividad($idActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria);
     }
 
     public function culminarActividad($idActividad, $descripcionCulminacion) {
@@ -236,4 +233,17 @@ public function obtenerActividadesParaCalendario() {
     private function registrarError($mensaje) {
         error_log("Error en controladorActividad: " . $mensaje);
     }
+
+    public function obtenerHistorialActividad($idActividad) {
+        try {
+            return $this->modelo->obtenerHistorialActividad($idActividad);
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener el historial de la actividad: " . $e->getMessage());
+        }
+    }
+
+
+
 }
+
+
