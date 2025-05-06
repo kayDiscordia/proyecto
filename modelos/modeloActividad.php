@@ -12,16 +12,16 @@ class modeloActividad {
     public function insertarActividad($descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria) {
         try {
             $idEstado = 2; // ID del estado "En progreso"
-
+    
             $stmt = $this->db->getConnection()->prepare("
                 INSERT INTO actividades (descripcionActividad, fechaInicio, fechaCulminacion, idEmpleado, idCategoria, idEstado)
                 VALUES (?, ?, ?, ?, ?, ?)
             ");
-
+    
             if (!$stmt) {
                 throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
             }
-
+    
             $stmt->bind_param(
                 "sssiii",
                 $descripcionActividad,
@@ -31,8 +31,16 @@ class modeloActividad {
                 $idCategoria,
                 $idEstado
             );
-
+    
             if ($stmt->execute()) {
+                // Obtener el ID de la actividad recién creada
+                $idActividad = $this->db->getConnection()->insert_id;
+    
+                // Registrar el evento en el historial
+                $evento = "Creación de actividad";
+                $detalles = "Se creó la actividad con la descripción: '$descripcionActividad', fecha de inicio: '$fechaInicio', fecha de culminación: '$fechaCulminacion', empleado asignado: $idEmpleado, categoría: $idCategoria.";
+                $this->registrarCambioEnHistorial($idActividad, $evento, $detalles);
+    
                 return true;
             } else {
                 throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
@@ -45,20 +53,42 @@ class modeloActividad {
             }
         }
     }
-
+    
     public function editarActividad($idActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria) {
         try {
             // Obtener los valores actuales de la actividad
             $stmt = $this->db->getConnection()->prepare("
-                SELECT descripcionActividad, fechaInicio, fechaCulminacion, idEmpleado, idCategoria
-                FROM actividades
-                WHERE idActividad = ?
+                SELECT 
+                    a.descripcionActividad, 
+                    a.fechaInicio, 
+                    a.fechaCulminacion, 
+                    a.idEmpleado, 
+                    e.nombres AS nombreEmpleadoActual, 
+                    c.nombreCategoria AS nombreCategoriaActual, 
+                    a.idCategoria
+                FROM actividades a
+                JOIN empleados e ON a.idEmpleado = e.idEmpleado
+                JOIN categoriasactividades c ON a.idCategoria = c.idCategoria
+                WHERE a.idActividad = ?
             ");
             $stmt->bind_param("i", $idActividad);
             $stmt->execute();
             $result = $stmt->get_result();
             $actividadActual = $result->fetch_assoc();
             $stmt->close();
+    
+            // Obtener los nombres del nuevo empleado y categoría
+            $stmtEmpleado = $this->db->getConnection()->prepare("SELECT nombres FROM empleados WHERE idEmpleado = ?");
+            $stmtEmpleado->bind_param("i", $idEmpleado);
+            $stmtEmpleado->execute();
+            $nuevoEmpleado = $stmtEmpleado->get_result()->fetch_assoc()['nombres'] ?? 'Desconocido';
+            $stmtEmpleado->close();
+    
+            $stmtCategoria = $this->db->getConnection()->prepare("SELECT nombreCategoria FROM categoriasactividades WHERE idCategoria = ?");
+            $stmtCategoria->bind_param("i", $idCategoria);
+            $stmtCategoria->execute();
+            $nuevaCategoria = $stmtCategoria->get_result()->fetch_assoc()['nombreCategoria'] ?? 'Desconocida';
+            $stmtCategoria->close();
     
             // Comparar los valores actuales con los nuevos
             $cambios = [];
@@ -72,10 +102,10 @@ class modeloActividad {
                 $cambios[] = "Fecha de culminación cambiada de '{$actividadActual['fechaCulminacion']}' a '$fechaCulminacion'";
             }
             if ($actividadActual['idEmpleado'] != $idEmpleado) {
-                $cambios[] = "Empleado reasignado de ID {$actividadActual['idEmpleado']} a ID $idEmpleado";
+                $cambios[] = "Empleado reasignado de '{$actividadActual['nombreEmpleadoActual']}' a '$nuevoEmpleado'";
             }
             if ($actividadActual['idCategoria'] != $idCategoria) {
-                $cambios[] = "Categoría cambiada de ID {$actividadActual['idCategoria']} a ID $idCategoria";
+                $cambios[] = "Categoría cambiada de '{$actividadActual['nombreCategoriaActual']}' a '$nuevaCategoria'";
             }
     
             // Actualizar los valores en la base de datos
@@ -156,14 +186,19 @@ class modeloActividad {
                     descripcionCancelacion = ?
                 WHERE idActividad = ?
             ");
-
+    
             if (!$stmt) {
                 throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
             }
-
+    
             $stmt->bind_param("si", $descripcionCancelacion, $idActividad);
-
+    
             if ($stmt->execute()) {
+                // Registrar el evento en el historial
+                $evento = "Actividad cancelada";
+                $detalles = "Motivo de cancelación: $descripcionCancelacion";
+                $this->registrarCambioEnHistorial($idActividad, $evento, $detalles);
+    
                 return true;
             } else {
                 throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
@@ -185,14 +220,19 @@ class modeloActividad {
                     descripcionCulminacion = ?
                 WHERE idActividad = ?
             ");
-
+    
             if (!$stmt) {
                 throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
             }
-
+    
             $stmt->bind_param("si", $descripcionCulminacion, $idActividad);
-
+    
             if ($stmt->execute()) {
+                // Registrar el evento en el historial
+                $evento = "Actividad culminada";
+                $detalles = "Descripción de culminación: $descripcionCulminacion";
+                $this->registrarCambioEnHistorial($idActividad, $evento, $detalles);
+    
                 return true;
             } else {
                 throw new Exception("Error al ejecutar la consulta: " . $stmt->error);

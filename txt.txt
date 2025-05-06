@@ -63,3 +63,9 @@ AAAAAAAAAAAAAAAAAAAA
 -Se agrego la tabla historialactividad
 -ahora se registran los cambios que se le hagan a la actividad mediante el modal de editar (se registran muy troglodita pero es algo)
 -se agrego un boton para acceder al historial desde verActividades
+
+6/2/2025 La pala contada
+
+-El historial registra los eventos de la creacion de la actividad, las ediciones que se le hagan desde el editarActividad
+y cuando se cancela o culmina la actividad. (Al hacer esto coloca además la descripcion de la actividad)
+-la tabla del historial ahora se ve un poco mejor.

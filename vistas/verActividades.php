@@ -209,7 +209,7 @@ try {
                     </div>
                 <?php else: ?>
                     <div class="overflow-x-auto">
-                        <table id="tablaActividades" class="w-full border-collapse border border-gray-300">
+                        <table id="tablaActividades" class="w-full border border-gray-300">
                             <thead class="bg-gray-200">
                                 <tr>
                                     <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">N°</th>
@@ -222,15 +222,15 @@ try {
                                     <th class="p-3 text-center text-sm font-semibold text-gray-700 border border-gray-300">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200">
+                            <tbody class="gray-200">
                                 <?php foreach ($actividades as $index => $actividad): ?>
                                     <tr class="hover:bg-gray-50">
                                         <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= $index + 1 ?></td>
                                         <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['categoriaActividad']) ?></td>
                                         <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['descripcionActividad']) ?></td>
                                         <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['nombreEmpleado']) ?></td>
-                                        <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['fechaInicio']) ?></td>
-                                        <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['fechaCulminacion']) ?></td>
+                                        <td class="p-3 text-m text-gray-700 border border-gray-300"> <?= date('d-m-Y', strtotime($actividad['fechaInicio'])) ?></td>
+                                        <td class="p-3 text-m text-gray-700 border border-gray-300"> <?= date('d-m-Y', strtotime($actividad['fechaCulminacion'])) ?></td>
                                         <td class="p-3 text-sm text-gray-700 border border-gray-300">
                                             <span class="<?=
                                                             $actividad['estadoActividad'] == 'En progreso' ? 'bg-yellow-100 text-yellow-800' : ($actividad['estadoActividad'] == 'Cancelada' ? 'bg-red-100 text-red-800' : ($actividad['estadoActividad'] == 'Completada' ? 'bg-green-100 text-green-800' :
@@ -239,7 +239,7 @@ try {
                                                 <?= htmlspecialchars($actividad['estadoActividad']) ?>
                                             </span>
                                         </td>
-                                        <td class="p-3 text-sm text-gray-700 border border-gray-300 flex justify-center space-x-2">
+                                        <td class="p-3 text-sm text-gray-700  border-gray-300 flex justify-center border">
                                             <?php if ($actividad['estadoActividad'] !== 'Completada' && $actividad['estadoActividad'] !== 'Cancelada'): ?>
                                                 <button type="button" onclick="mostrarCancelar(<?= htmlspecialchars(json_encode($actividad)) ?>)"
                                                     class="text-red-600 hover:text-red-800 bg-red-100 px-3 py-1 rounded-md flex items-center">
@@ -272,7 +272,6 @@ try {
                     </div>
                 <?php endif; ?>
             </div>
-
 
             <!-- Modal para Ver Detalles -->
             <div id="modalDetalles" class="fixed inset-0 items-center justify-center hidden">
@@ -340,6 +339,7 @@ try {
                     </form>
                 </div>
             </div>
+
             <!-- Modal para Culminar -->
             <div id="modalCulminar" class="fixed inset-0  items-center justify-center hidden">
                 <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">

@@ -35,7 +35,7 @@ class controladorActividad {
             throw new Exception("Error al obtener los detalles de la actividad: " . $e->getMessage());
         }
     }
-    // Agregar este método al controlador
+
 public function obtenerActividadesParaCalendario() {
     try {
         $actividades = $this->modelo->obtenerActividadesParaCalendario();
@@ -52,7 +52,7 @@ public function obtenerActividadesParaCalendario() {
                     'empleado' => $actividad['empleado'],
                     'categoria' => $actividad['categoria'],
                     'description' => $actividad['description'],
-                    'estado' => $actividad['estado'] // Asegurando que el estado se incluya
+                    'estado' => $actividad['estado']
                 ]
             ];
             

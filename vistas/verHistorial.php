@@ -48,13 +48,19 @@ try {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($historial as $evento): ?>
-                            <tr class="hover:bg-gray-50">
-                                <td class="p-3 border border-gray-300"><?= htmlspecialchars($evento['evento']) ?></td>
-                                <td class="p-3 border border-gray-300"><?= htmlspecialchars($evento['fecha']) ?></td>
-                                <td class="p-3 border border-gray-300"><?= htmlspecialchars($evento['detalles']) ?></td>
+                        <?php if (empty($historial)): ?>
+                            <tr>
+                                <td colspan="3" class="p-3 text-center border border-gray-300">No hay eventos registrados.</td>
                             </tr>
-                        <?php endforeach; ?>
+                        <?php endif; ?>
+                        <?php foreach ($historial as $evento): ?>
+                    <tbody>
+                        <tr class="bg-gray-50">
+                            <td class="p-3 border border-gray-300"><?= htmlspecialchars($evento['evento']) ?></td>
+                            <td class="p-3 border border-gray-300"><?= htmlspecialchars($evento['fecha']) ?></td>
+                            <td class="p-3 border border-gray-300"><?= htmlspecialchars($evento['detalles']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
