@@ -65,7 +65,7 @@ if (isset($_POST['submit'])) {
 </head>
 <body class="relative min-h-screen flex items-center justify-center bg-[#E8EEFF]">
     <!-- Imagen de fondo difuminada -->
-    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('vistas/CSS/DeWatermark.ai_1743707779701.png'); filter: blur(1px); -webkit-filter: blur(1px); z-index: -1;"></div>
+    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('vistas/CSS/DeWatermark.ai_1743707779701.png'); z-index: -1;"></div>
 
     <!-- Contenedor principal -->
     <div class="w-full max-w-md p-8 rounded-lg bg-[#89C0E9] bg-opacity-90 border-gray-300 shadow-lg relative z-10">

@@ -412,7 +412,7 @@ try {
             doc.setFontSize(18);
             doc.text('Reporte de Actividades', 10, 10);
             doc.setFontSize(12);
-            doc.text('Generado el: <?= date("Y-m-d H:i:s") ?>', 10, 20);
+            doc.text('Generado el: <?= date("d-m-Y H:i:s") ?>', 10, 20);
 
             // Obtener datos de la tabla
             const headers = ["N°", "Categoría", "Descripción", "Empleado Responsable", "Fecha Inicio", "Fecha Fin", "Estado"];
