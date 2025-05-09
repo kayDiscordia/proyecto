@@ -211,7 +211,7 @@ try {
                     <div class="overflow-x-auto">
                         <table id="tablaActividades" class="w-full border border-gray-300">
                             <thead class="bg-gray-200">
-                                <tr>
+                                <tr class="border border-gray-300">
                                     <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">N°</th>
                                     <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Categoría</th>
                                     <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Descripción</th>
@@ -222,46 +222,51 @@ try {
                                     <th class="p-3 text-center text-sm font-semibold text-gray-700 border border-gray-300">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody class="gray-200">
+                            <tbody class="divide-y divide-gray-300">
                                 <?php foreach ($actividades as $index => $actividad): ?>
-                                    <tr class="hover:bg-gray-50">
+                                    <tr class="hover:bg-gray-50 border border-gray-300">
                                         <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= $index + 1 ?></td>
                                         <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['categoriaActividad']) ?></td>
                                         <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['descripcionActividad']) ?></td>
                                         <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['nombreEmpleado']) ?></td>
-                                        <td class="p-3 text-m text-gray-700 border border-gray-300"> <?= date('d-m-Y', strtotime($actividad['fechaInicio'])) ?></td>
-                                        <td class="p-3 text-m text-gray-700 border border-gray-300"> <?= date('d-m-Y', strtotime($actividad['fechaCulminacion'])) ?></td>
+                                        <td class="p-3 text-m text-gray-700 border border-gray-300"><?= date('d-m-Y', strtotime($actividad['fechaInicio'])) ?></td>
+                                        <td class="p-3 text-m text-gray-700 border border-gray-300"><?= date('d-m-Y', strtotime($actividad['fechaCulminacion'])) ?></td>
                                         <td class="p-3 text-sm text-gray-700 border border-gray-300">
                                             <span class="<?=
                                                             $actividad['estadoActividad'] == 'En progreso' ? 'bg-yellow-100 text-yellow-800' : ($actividad['estadoActividad'] == 'Cancelada' ? 'bg-red-100 text-red-800' : ($actividad['estadoActividad'] == 'Completada' ? 'bg-green-100 text-green-800' :
-                                                                'bg-gray-100 text-gray-800'))
+                                                                        'bg-gray-100 text-gray-800'))
                                                             ?> px-2 py-1 rounded-lg text-xs">
                                                 <?= htmlspecialchars($actividad['estadoActividad']) ?>
                                             </span>
                                         </td>
-                                        <td class="p-3 text-sm text-gray-700  border-gray-300 flex justify-center border">
+                                        <td class="p-3 text-sm text-gray-700 border border-zinc-50 flex justify-center items-center">
                                             <?php if ($actividad['estadoActividad'] !== 'Completada' && $actividad['estadoActividad'] !== 'Cancelada'): ?>
                                                 <button type="button" onclick="mostrarCancelar(<?= htmlspecialchars(json_encode($actividad)) ?>)"
-                                                    class="text-red-600 hover:text-red-800 bg-red-100 px-3 py-1 rounded-md flex items-center">
-                                                    <i class="fas fa-times mr-1"></i>Cancelar
+                                                    class="text-red-600 hover:text-red-800 bg-red-100 px-3 py-1 rounded-md flex items-center mr-2"
+                                                    style="outline: 2px solid #f87171;" title="Cancelar">
+                                                    <i class="fas fa-times mr-1"></i>
                                                 </button>
                                                 <button type="button" onclick="mostrarCulminar(<?= htmlspecialchars(json_encode($actividad)) ?>)"
-                                                    class="text-green-600 hover:text-green-800 bg-green-100 px-3 py-1 rounded-md flex items-center">
-                                                    <i class="fas fa-check mr-1"></i>Culminar
+                                                    class="text-green-600 hover:text-green-800 bg-green-100 px-3 py-1 rounded-md flex items-center mr-2"
+                                                    style="outline: 2px solid #34d399;" title="Culminar">
+                                                    <i class="fas fa-check mr-1"></i>
                                                 </button>
                                             <?php endif; ?>
-                                            <button type="button" onclick="mostrarDetalles(<?= htmlspecialchars(json_encode($actividad)) ?>)"
-                                                class="text-blue-600 hover:text-blue-800 bg-blue-100 px-3 py-1 rounded-md flex items-center">
-                                                <i class="fas fa-eye mr-1"></i>Detalles
-                                            </button>
-                                            <!-- Botón para Editar -->
                                             <button type="button" onclick="mostrarEditar(<?= htmlspecialchars(json_encode($actividad)) ?>)"
-                                                class="text-yellow-600 hover:text-yellow-800 bg-yellow-100 px-3 py-1 rounded-md flex items-center">
-                                                <i class="fas fa-edit mr-1"></i>Editar
+                                                class="text-yellow-600 hover:text-yellow-800 bg-yellow-100 px-3 py-1 rounded-md flex items-center mr-2"
+                                                style="outline: 2px solid #fbbf24;" title="Editar">
+                                                <i class="fas fa-edit mr-1"></i>
+                                            </button>
+                                            <button type="button" onclick="mostrarDetalles(<?= htmlspecialchars(json_encode($actividad)) ?>)"
+                                                class="text-blue-600 hover:text-blue-800 bg-blue-100 px-3 py-1 rounded-md flex items-center mr-2"
+                                                style="outline: 2px solid #60a5fa;" title="Detalles">
+                                                <i class="fas fa-eye mr-1"></i>
                                             </button>
                                             <button>
-                                                <a href="verHistorial.php?id=<?= htmlspecialchars($actividad['idActividad']) ?>" class="text-gray-600 hover:text-gray-800 bg-gray-100 px-3 py-1 rounded-md flex items-center">
-                                                    <i class="fas fa-history mr-1"></i>Historial
+                                                <a href="verHistorial.php?id=<?= htmlspecialchars($actividad['idActividad']) ?>"
+                                                    class="text-gray-600 hover:text-gray-800 bg-gray-100 px-3 py-1 rounded-md flex items-center"
+                                                    style="outline: 2px solid #9ca3af;" title="Historial">
+                                                    <i class="fas fa-history mr-1"></i>
                                                 </a>
                                             </button>
                                         </td>

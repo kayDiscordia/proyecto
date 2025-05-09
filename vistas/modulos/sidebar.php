@@ -32,7 +32,7 @@ $departamento = isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento']
                 <div class="p-2 bg-white rounded-lg">
                     <button onclick=location.href="../vistas/home.php" class="w-full text-left px-2 py-1 text-sm hover:bg-gray-200 rounded flex items-center">
                     <i class="fa-solid fa-table-columns p-2"></i>                
-                        Dashboard
+                        Panel de Control
                     </button>
                 </div>
                 <?php if ($rol == 1): ?>
