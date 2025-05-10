@@ -22,9 +22,6 @@ $departamento = isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento']
             <p class="text-lg font-bold text-gray-900">
                 Bienvenido, <?php echo htmlspecialchars($nombre . ' ' . $apellido); ?>!
             </p>
-          <!--  <p class="text-lg font-bold text-gray-900">
-                <?php // echo htmlspecialchars($departamento); ?>
-            </p> -->
         </div>
     <div class="flex-1 overflow-y-auto">
         <div class="p-4" x-show="!isCollapsed" x-transition>

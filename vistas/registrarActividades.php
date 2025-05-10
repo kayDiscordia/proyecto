@@ -54,6 +54,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         });
     </script>
+    <style>
+        #modalLimiteExcedido {
+            transition: opacity 0.3s ease;
+        }
+
+        #modalLimiteExcedido .bg-opacity-50 {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        #modalLimiteExcedido .z-50 {
+            z-index: 50;
+        }
+    </style>
 </head>
 
 <body class="bg-[#E8EEFF]">
@@ -97,7 +110,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <option value="">Cargando categorías...</option>
                             </select>
                         </div>
-
+                        <div class="space-y-2">
+                            <label for="nombreActividad" class="block text-sm font-medium text-gray-700">Nombre de la Actividad</label>
+                            <input type="text" id="nombreActividad" name="nombreActividad" maxlength="40"
+                                value="<?php echo isset($formData['nombreActividad']) ? htmlspecialchars($formData['nombreActividad']) : ''; ?>"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                placeholder="Ingrese un nombre breve para la actividad (máx. 40 caracteres)" required>
+                            <p class="text-xs text-gray-500">Máximo 40 caracteres</p>
+                        </div>
                         <div class="grid grid-cols-1 gap-3">
                             <div class="space-y-2">
                                 <label for="descripcionActividad" class="block text-sm font-medium text-gray-700">Descripción de la Actividad</label>
@@ -128,8 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <select id="idEmpleado" name="idEmpleado" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                                 <option value="">Seleccione un empleado</option>
                                 <?php foreach ($empleados as $empleado): ?>
-                                    <?php if ($empleado['estado_nombre'] === 'Activo'): // Cambia 'Activo' según corresponda en tu base de datos 
-                                    ?>
+                                    <?php if ($empleado['estado_nombre'] === 'Activo'): ?>
                                         <option value="<?php echo $empleado['idEmpleado']; ?>"
                                             <?php echo (!empty($formData['idEmpleado']) && $formData['idEmpleado'] == $empleado['idEmpleado'] ? 'selected' : ''); ?>>
                                             <?php echo htmlspecialchars($empleado['nombres'] . ' ' . $empleado['apellidos']); ?>
@@ -137,8 +156,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <?php endif; ?>
                                 <?php endforeach; ?>
                             </select>
+                            <p id="empleadoLimiteInfo" class="text-xs text-gray-500 hidden"></p>
                         </div>
-
                         <br>
                         <div class="flex justify-between">
                             <a href="home.php" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
@@ -154,35 +173,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </main>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', async function() {
-            const categoriaSelect = document.getElementById('idCategoria');
-            const departamentoId = "<?php echo isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : ''; ?>";
-
-            if (departamentoId) {
-                try {
-                    // Realizar la solicitud para obtener las categorías
-                    const response = await fetch(`obtenerCategorias.php?idDepartamento=${departamentoId}`);
-                    if (!response.ok) {
-                        throw new Error('Error al cargar categorías');
-                    }
-
-                    const categorias = await response.json();
-
-                    // Limpiar el select y agregar las categorías
-                    categoriaSelect.innerHTML = '<option value="">Seleccione una categoría</option>';
-                    categorias.forEach(categoria => {
-                        const option = document.createElement('option');
-                        option.value = categoria.idCategoria;
-                        option.text = categoria.nombreCategoria;
-                        categoriaSelect.add(option);
-                    });
-                } catch (error) {
-                    console.error('Error al cargar categorías:', error);
-                    categoriaSelect.innerHTML = '<option value="">Error al cargar categorías</option>';
-                }
-            } else {
-                categoriaSelect.innerHTML = '<option value="">No se encontró un departamento válido</option>';
+        document.getElementById('nombreActividad').addEventListener('input', function() {
+            if (this.value.length > 40) {
+                this.value = this.value.substring(0, 40);
+                alert('El nombre de la actividad no puede exceder los 40 caracteres');
             }
+        });
+
+        document.addEventListener('DOMContentLoaded', async function() {
+        const categoriaSelect = document.getElementById('idCategoria');
+        const departamentoId = "<?php echo isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : ''; ?>";
+
+        if (departamentoId) {
+            try {
+                // Realizar la solicitud para obtener las categorías
+                const response = await fetch(`obtenerCategorias.php?idDepartamento=${departamentoId}`);
+                if (!response.ok) {
+                    throw new Error('Error al cargar categorías');
+                }
+
+                const categorias = await response.json();
+
+                // Limpiar el select y agregar las categorías
+                categoriaSelect.innerHTML = '<option value="">Seleccione una categoría</option>';
+                categorias.forEach(categoria => {
+                    const option = document.createElement('option');
+                    option.value = categoria.idCategoria;
+                    option.text = categoria.nombreCategoria;
+                    categoriaSelect.add(option);
+                });
+            } catch (error) {
+                console.error('Error al cargar categorías:', error);
+                categoriaSelect.innerHTML = '<option value="">Error al cargar categorías</option>';
+            }
+        } else {
+            categoriaSelect.innerHTML = '<option value="">No se encontró un departamento válido</option>';   
+        }
+
+        // Verificar el límite de actividades al seleccionar un empleado
+        const empleadoSelect = document.getElementById('idEmpleado');
+        const submitBtn = document.querySelector('button[type="submit"]');
+        const infoElement = document.getElementById('empleadoLimiteInfo');
+
+        empleadoSelect.addEventListener('change', async function() {
+            const empleadoId = this.value;
+            if (!empleadoId) {
+                infoElement.classList.add('hidden');
+                submitBtn.disabled = false;
+                return;
+            }
+
+            try {
+                const response = await fetch('../controladores/controladorActividad.php?action=limite&idEmpleado=' + empleadoId);
+                if (!response.ok) throw new Error('Error al verificar límite de actividades');
+                const data = await response.json();
+
+                if (data.error) {
+                    infoElement.textContent = 'Error: ' + data.error;
+                    infoElement.classList.remove('hidden');
+                    submitBtn.disabled = true;
+                    return;
+                }
+
+                infoElement.textContent = `Actividades: ${data.actividadesActuales}/${data.limite} (Disponibles: ${data.disponibles})`;
+                infoElement.classList.remove('hidden');
+
+                if (data.disponibles <= 0) {
+                    infoElement.classList.add('text-red-600', 'font-bold');
+                    infoElement.textContent += ' - ¡LÍMITE ALCANZADO!';
+                    submitBtn.disabled = true;
+                } else {
+                    infoElement.classList.remove('text-red-600', 'font-bold');
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                infoElement.textContent = 'Error al verificar límite.';
+                infoElement.classList.remove('hidden');
+                submitBtn.disabled = true;
+            }
+        });
         });
     </script>
 </body>

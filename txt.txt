@@ -69,3 +69,10 @@ AAAAAAAAAAAAAAAAAAAA
 -El historial registra los eventos de la creacion de la actividad, las ediciones que se le hagan desde el editarActividad
 y cuando se cancela o culmina la actividad. (Al hacer esto coloca además la descripcion de la actividad)
 -la tabla del historial ahora se ve un poco mejor.
+
+9/5/2025
+
+-Mejora significativa al aspecto del historial de actividades
+-Se agrego la columna de nombreActividades en la tabla actividades
+-Se agrego limite de actividades basada en el cargo del empleado
+-se agrego una forma de visualizar si la actividad se cumplio o cancelo antes de que llegara a el estado "En progreso"

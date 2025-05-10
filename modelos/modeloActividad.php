@@ -1,29 +1,33 @@
 <?php
 require_once 'Database.php';
 
-class modeloActividad {
+class modeloActividad
+{
     private $db;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->db = new Database();
     }
 
     // Método para insertar una actividad
-    public function insertarActividad($descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria) {
+    public function insertarActividad($nombreActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria)
+    {
         try {
             $idEstado = 2; // ID del estado "En progreso"
-    
+
             $stmt = $this->db->getConnection()->prepare("
-                INSERT INTO actividades (descripcionActividad, fechaInicio, fechaCulminacion, idEmpleado, idCategoria, idEstado)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ");
-    
+            INSERT INTO actividades (nombreActividad, descripcionActividad, fechaInicio, fechaCulminacion, idEmpleado, idCategoria, idEstado)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
+
             if (!$stmt) {
                 throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
             }
-    
+
             $stmt->bind_param(
-                "sssiii",
+                "ssssiii",
+                $nombreActividad,
                 $descripcionActividad,
                 $fechaInicio,
                 $fechaCulminacion,
@@ -31,16 +35,15 @@ class modeloActividad {
                 $idCategoria,
                 $idEstado
             );
-    
+
             if ($stmt->execute()) {
-                // Obtener el ID de la actividad recién creada
                 $idActividad = $this->db->getConnection()->insert_id;
-    
+
                 // Registrar el evento en el historial
                 $evento = "Creación de actividad";
-                $detalles = "Se creó la actividad con la descripción: '$descripcionActividad', fecha de inicio: '$fechaInicio', fecha de culminación: '$fechaCulminacion', empleado asignado: $idEmpleado, categoría: $idCategoria.";
+                $detalles = "Nombre: '$nombreActividad'. Descripción: '$descripcionActividad'";
                 $this->registrarCambioEnHistorial($idActividad, $evento, $detalles);
-    
+
                 return true;
             } else {
                 throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
@@ -53,8 +56,9 @@ class modeloActividad {
             }
         }
     }
-    
-    public function editarActividad($idActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria) {
+
+    public function editarActividad($idActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria)
+    {
         try {
             // Obtener los valores actuales de la actividad
             $stmt = $this->db->getConnection()->prepare("
@@ -76,20 +80,20 @@ class modeloActividad {
             $result = $stmt->get_result();
             $actividadActual = $result->fetch_assoc();
             $stmt->close();
-    
+
             // Obtener los nombres del nuevo empleado y categoría
             $stmtEmpleado = $this->db->getConnection()->prepare("SELECT nombres FROM empleados WHERE idEmpleado = ?");
             $stmtEmpleado->bind_param("i", $idEmpleado);
             $stmtEmpleado->execute();
             $nuevoEmpleado = $stmtEmpleado->get_result()->fetch_assoc()['nombres'] ?? 'Desconocido';
             $stmtEmpleado->close();
-    
+
             $stmtCategoria = $this->db->getConnection()->prepare("SELECT nombreCategoria FROM categoriasactividades WHERE idCategoria = ?");
             $stmtCategoria->bind_param("i", $idCategoria);
             $stmtCategoria->execute();
             $nuevaCategoria = $stmtCategoria->get_result()->fetch_assoc()['nombreCategoria'] ?? 'Desconocida';
             $stmtCategoria->close();
-    
+
             // Comparar los valores actuales con los nuevos
             $cambios = [];
             if ($actividadActual['descripcionActividad'] !== $descripcionActividad) {
@@ -107,7 +111,7 @@ class modeloActividad {
             if ($actividadActual['idCategoria'] != $idCategoria) {
                 $cambios[] = "Categoría cambiada de '{$actividadActual['nombreCategoriaActual']}' a '$nuevaCategoria'";
             }
-    
+
             // Actualizar los valores en la base de datos
             $stmt = $this->db->getConnection()->prepare("
                 UPDATE actividades 
@@ -115,17 +119,17 @@ class modeloActividad {
                 WHERE idActividad = ?
             ");
             $stmt->bind_param("sssiii", $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria, $idActividad);
-    
+
             if (!$stmt->execute()) {
                 throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
             }
-    
+
             // Registrar los cambios en el historial
             if (!empty($cambios)) {
                 $detalles = implode("; ", $cambios);
                 $this->registrarCambioEnHistorial($idActividad, "Edición de actividad", $detalles);
             }
-    
+
             return true;
         } catch (Exception $e) {
             throw new Exception("Error al editar la actividad: " . $e->getMessage());
@@ -136,7 +140,8 @@ class modeloActividad {
         }
     }
 
-    public function obtenerActividades() {
+    public function obtenerActividades()
+    {
         try {
             $query = "
                 SELECT 
@@ -160,45 +165,56 @@ class modeloActividad {
                 ORDER BY 
                     a.idActividad ASC
             ";
-    
+
             $result = $this->db->getConnection()->query($query);
-    
+
             if (!$result) {
                 throw new Exception("Error al ejecutar la consulta: " . $this->db->getConnection()->error);
             }
-    
+
             $actividades = [];
             while ($row = $result->fetch_assoc()) {
                 $actividades[] = $row;
             }
-    
+
             return $actividades;
         } catch (Exception $e) {
             throw new Exception("Error al obtener actividades: " . $e->getMessage());
         }
     }
 
-    public function cancelarActividad($idActividad, $descripcionCancelacion) {
+    public function cancelarActividad($idActividad, $descripcionCancelacion)
+    {
         try {
+            $stmtEstado = $this->db->getConnection()->prepare("SELECT idEstado FROM actividades WHERE idActividad = ?");
+            $stmtEstado->bind_param("i", $idActividad);
+            $stmtEstado->execute();
+            $result = $stmtEstado->get_result();
+            $estadoActual = $result->fetch_assoc()['idEstado'];
+            $stmtEstado->close();
+
+            $stmtNombre = $this->db->getConnection()->prepare("SELECT nombreEstado FROM estadoActividad WHERE idEstado = ?");
+            $stmtNombre->bind_param("i", $estadoActual);
+            $stmtNombre->execute();
+            $resultNombre = $stmtNombre->get_result();
+            $nombreEstado = $resultNombre->fetch_assoc()['nombreEstado'];
+            $stmtNombre->close();
+
             $stmt = $this->db->getConnection()->prepare("
-                UPDATE actividades 
-                SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Cancelada'),
-                    descripcionCancelacion = ?
-                WHERE idActividad = ?
-            ");
-    
-            if (!$stmt) {
-                throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
-            }
-    
+            UPDATE actividades 
+            SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Cancelada'),
+                descripcionCancelacion = ?
+            WHERE idActividad = ?
+        ");
             $stmt->bind_param("si", $descripcionCancelacion, $idActividad);
-    
+
             if ($stmt->execute()) {
-                // Registrar el evento en el historial
                 $evento = "Actividad cancelada";
                 $detalles = "Motivo de cancelación: $descripcionCancelacion";
+                if (trim(strtolower($nombreEstado)) === "por iniciar") {
+                    $detalles .= " (La actividad fue cancelada antes de iniciar)";
+                }
                 $this->registrarCambioEnHistorial($idActividad, $evento, $detalles);
-    
                 return true;
             } else {
                 throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
@@ -206,33 +222,45 @@ class modeloActividad {
         } catch (Exception $e) {
             throw new Exception("Error al cancelar la actividad: " . $e->getMessage());
         } finally {
-            if (isset($stmt)) {
-                $stmt->close();
-            }
+            if (isset($stmt)) $stmt->close();
         }
     }
 
-    public function culminarActividad($idActividad, $descripcionCulminacion) {
+    public function culminarActividad($idActividad, $descripcionCulminacion)
+    {
         try {
+            // Verificar estado actual ANTES de actualizar
+            $stmtEstado = $this->db->getConnection()->prepare("SELECT idEstado FROM actividades WHERE idActividad = ?");
+            $stmtEstado->bind_param("i", $idActividad);
+            $stmtEstado->execute();
+            $result = $stmtEstado->get_result();
+            $estadoActual = $result->fetch_assoc()['idEstado'];
+            $stmtEstado->close();
+
+            $stmtNombre = $this->db->getConnection()->prepare("SELECT nombreEstado FROM estadoActividad WHERE idEstado = ?");
+            $stmtNombre->bind_param("i", $estadoActual);
+            $stmtNombre->execute();
+            $resultNombre = $stmtNombre->get_result();
+            $nombreEstado = $resultNombre->fetch_assoc()['nombreEstado'];
+            $stmtNombre->close();
+
+            // Actualizar estado a Completada
             $stmt = $this->db->getConnection()->prepare("
-                UPDATE actividades 
-                SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Completada'),
-                    descripcionCulminacion = ?
-                WHERE idActividad = ?
-            ");
-    
-            if (!$stmt) {
-                throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
-            }
-    
+            UPDATE actividades 
+            SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Completada'),
+                descripcionCulminacion = ?
+            WHERE idActividad = ?
+        ");
             $stmt->bind_param("si", $descripcionCulminacion, $idActividad);
-    
+
             if ($stmt->execute()) {
-                // Registrar el evento en el historial
                 $evento = "Actividad culminada";
                 $detalles = "Descripción de culminación: $descripcionCulminacion";
+                // Normaliza el nombre del estado para evitar problemas de espacios o mayúsculas
+                if (trim(strtolower($nombreEstado)) === "por iniciar") {
+                    $detalles .= " (La actividad fue culminada antes de tiempo)";
+                }
                 $this->registrarCambioEnHistorial($idActividad, $evento, $detalles);
-    
                 return true;
             } else {
                 throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
@@ -240,13 +268,12 @@ class modeloActividad {
         } catch (Exception $e) {
             throw new Exception("Error al culminar la actividad: " . $e->getMessage());
         } finally {
-            if (isset($stmt)) {
-                $stmt->close();
-            }
+            if (isset($stmt)) $stmt->close();
         }
     }
 
-    public function obtenerDetallesActividad($idActividad) {
+    public function obtenerDetallesActividad($idActividad)
+    {
         try {
             $stmt = $this->db->getConnection()->prepare("
                 SELECT 
@@ -269,19 +296,19 @@ class modeloActividad {
                 WHERE 
                     a.idActividad = ?
             ");
-    
+
             if (!$stmt) {
                 throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
             }
-    
+
             $stmt->bind_param("i", $idActividad);
             $stmt->execute();
             $result = $stmt->get_result();
-    
+
             if ($result->num_rows === 0) {
                 throw new Exception("No se encontró la actividad con el ID proporcionado.");
             }
-    
+
             return $result->fetch_assoc();
         } catch (Exception $e) {
             throw new Exception("Error al obtener los detalles de la actividad: " . $e->getMessage());
@@ -292,7 +319,8 @@ class modeloActividad {
         }
     }
 
-    public function obtenerCategoriasPorDepartamento($idDepartamento) {
+    public function obtenerCategoriasPorDepartamento($idDepartamento)
+    {
         try {
             $stmt = $this->db->getConnection()->prepare("
                 SELECT idCategoria, nombreCategoria 
@@ -313,63 +341,113 @@ class modeloActividad {
             throw new Exception("Error al obtener categorías: " . $e->getMessage());
         }
     }
-    public function actualizarEstadosActividades() {
+    public function actualizarEstadosActividades()
+    {
         try {
-            $fechaActual = date('Y-m-d');
-    
-            // Cambiar estado a "Retraso" si la fecha de culminación ya pasó
+            $fechaActual = date('d-m-Y');
+
+            // 1. Detectar actividades que pasarán a "Retraso"
             $stmtRetraso = $this->db->getConnection()->prepare("
-                UPDATE actividades 
-                SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Retraso')
-                WHERE idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'En progreso')
-                AND fechaCulminacion < ?
-            ");
+            SELECT idActividad FROM actividades 
+            WHERE idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'En progreso')
+            AND fechaCulminacion < ?
+        ");
             $stmtRetraso->bind_param("s", $fechaActual);
-            if (!$stmtRetraso->execute()) {
-                throw new Exception("Error al actualizar actividades a 'Retraso': " . $stmtRetraso->error);
+            $stmtRetraso->execute();
+            $resultRetraso = $stmtRetraso->get_result();
+            $actividadesRetraso = [];
+            while ($row = $resultRetraso->fetch_assoc()) {
+                $actividadesRetraso[] = $row['idActividad'];
             }
-    
-            // Cambiar estado a "Por iniciar" si la fecha de inicio aún no ha llegado
-            $stmtPorIniciar = $this->db->getConnection()->prepare("
-                UPDATE actividades 
-                SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Por iniciar')
-                WHERE idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'En progreso')
-                AND fechaInicio > ?
-            ");
-            $stmtPorIniciar->bind_param("s", $fechaActual);
-            if (!$stmtPorIniciar->execute()) {
-                throw new Exception("Error al actualizar actividades a 'Por iniciar': " . $stmtPorIniciar->error);
+            $stmtRetraso->close();
+
+            // Cambiar estado a "Retraso"
+            $stmtUpdateRetraso = $this->db->getConnection()->prepare("
+            UPDATE actividades 
+            SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Retraso')
+            WHERE idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'En progreso')
+            AND fechaCulminacion < ?
+        ");
+            $stmtUpdateRetraso->bind_param("s", $fechaActual);
+            $stmtUpdateRetraso->execute();
+            $stmtUpdateRetraso->close();
+
+            // Registrar en historial el cambio a "Retraso"
+            foreach ($actividadesRetraso as $idActividad) {
+                $this->registrarCambioEnHistorial(
+                    $idActividad,
+                    "Cambio de estado",
+                    "La actividad pasó a estado 'Retraso' por superar la fecha de culminación."
+                );
             }
-    
-            // Cambiar estado a "En progreso" si la fecha de inicio ya ha llegado
+
+            // 2. Cambiar estado a "En progreso" si la fecha de inicio ya llegó y no está completada/cancelada/retrasada
             $stmtEnProgreso = $this->db->getConnection()->prepare("
-                UPDATE actividades 
-                SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'En progreso')
-                WHERE idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Por iniciar')
-                AND fechaInicio <= ?
-            ");
+            UPDATE actividades 
+            SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'En progreso')
+            WHERE idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Por iniciar')
+            AND fechaInicio <= ?
+            AND idEstado NOT IN (
+                SELECT idEstado FROM estadoActividad WHERE nombreEstado IN ('Completada', 'Cancelada', 'Retraso')
+            )
+        ");
             $stmtEnProgreso->bind_param("s", $fechaActual);
-            if (!$stmtEnProgreso->execute()) {
-                throw new Exception("Error al actualizar actividades a 'En progreso': " . $stmtEnProgreso->error);
-            }
-    
+            $stmtEnProgreso->execute();
+            $stmtEnProgreso->close();
+
+            // 3. Cambiar estado a "Por iniciar" si la fecha de inicio aún no ha llegado y no está completada/cancelada/retrasada
+            $stmtPorIniciar = $this->db->getConnection()->prepare("
+            UPDATE actividades 
+            SET idEstado = (SELECT idEstado FROM estadoActividad WHERE nombreEstado = 'Por iniciar')
+            WHERE fechaInicio > ?
+            AND idEstado NOT IN (
+                SELECT idEstado FROM estadoActividad WHERE nombreEstado IN ('Completada', 'Cancelada', 'Retraso')
+            )
+        ");
+            $stmtPorIniciar->bind_param("s", $fechaActual);
+            $stmtPorIniciar->execute();
+            $stmtPorIniciar->close();
+
             return true;
         } catch (Exception $e) {
             throw new Exception("Error al actualizar estados de actividades: " . $e->getMessage());
+        }
+    }
+
+    public function contarActividadesActivasPorEmpleado($idEmpleado)
+    {
+        try {
+            $stmt = $this->db->getConnection()->prepare("
+            SELECT COUNT(*) as total 
+            FROM actividades 
+            WHERE idEmpleado = ? 
+            AND idEstado IN (
+                SELECT idEstado FROM estadoActividad 
+                WHERE nombreEstado IN ('Por iniciar', 'En progreso', 'Retraso')
+            )
+        ");
+
+            if (!$stmt) {
+                throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
+            }
+
+            $stmt->bind_param("i", $idEmpleado);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_assoc();
+
+            return (int)$row['total'];
+        } catch (Exception $e) {
+            throw new Exception("Error al contar actividades del empleado: " . $e->getMessage());
         } finally {
-            if (isset($stmtRetraso)) {
-                $stmtRetraso->close();
-            }
-            if (isset($stmtPorIniciar)) {
-                $stmtPorIniciar->close();
-            }
-            if (isset($stmtEnProgreso)) {
-                $stmtEnProgreso->close();
+            if (isset($stmt)) {
+                $stmt->close();
             }
         }
     }
 
-    public function obtenerHistorialActividad($idActividad) {
+    public function obtenerHistorialActividad($idActividad)
+    {
         try {
             $query = "
                 SELECT 
@@ -383,39 +461,69 @@ class modeloActividad {
                 ORDER BY 
                     h.fecha ASC
             ";
-    
+
             $stmt = $this->db->getConnection()->prepare($query);
             if (!$stmt) {
                 throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
             }
-    
+
             $stmt->bind_param("i", $idActividad);
             $stmt->execute();
             $result = $stmt->get_result();
-    
+
             $historial = [];
             while ($row = $result->fetch_assoc()) {
                 $historial[] = $row;
             }
-    
+
             return $historial;
         } catch (Exception $e) {
             throw new Exception("Error al obtener el historial de la actividad: " . $e->getMessage());
         }
     }
 
-    public function registrarCambioEnHistorial($idActividad, $evento, $detalles) {
+    public function obtenerLimiteActividadesPorEmpleado($idEmpleado)
+    {
+        try {
+            $query = "
+            SELECT c.limiteActividades
+            FROM empleados e
+            JOIN cargos c ON e.idCargo = c.idCargo
+            WHERE e.idEmpleado = ?
+        ";
+
+            $stmt = $this->db->getConnection()->prepare($query);
+            if (!$stmt) {
+                throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
+            }
+
+            $stmt->bind_param("i", $idEmpleado);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result->num_rows === 0) {
+                throw new Exception("No se encontró el límite de actividades para el empleado.");
+            }
+
+            return $result->fetch_assoc()['limiteActividades'];
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener el límite de actividades: " . $e->getMessage());
+        }
+    }
+
+    public function registrarCambioEnHistorial($idActividad, $evento, $detalles)
+    {
         try {
             $query = "
                 INSERT INTO historialactividades (idActividad, evento, fecha, detalles)
                 VALUES (?, ?, NOW(), ?)
             ";
-    
+
             $stmt = $this->db->getConnection()->prepare($query);
             if (!$stmt) {
                 throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
             }
-    
+
             $stmt->bind_param("iss", $idActividad, $evento, $detalles);
             $stmt->execute();
             $stmt->close();
@@ -424,11 +532,13 @@ class modeloActividad {
         }
     }
 
-    public function obtenerActividadesFiltradas($estado = 'todos', $fechaInicio = '', $fechaFin = '', $categoria = 'todas') {
+    public function obtenerActividadesFiltradas($estado = 'todos', $fechaInicio = '', $fechaFin = '', $categoria = 'todas')
+    {
         try {
             $query = "
                 SELECT 
                     a.idActividad,
+                    a.nombreActividad,
                     a.descripcionActividad,
                     a.fechaInicio,
                     a.fechaCulminacion,
@@ -501,14 +611,14 @@ class modeloActividad {
             }
 
             return $actividades;
-
         } catch (Exception $e) {
             throw new Exception("Error al obtener actividades filtradas: " . $e->getMessage());
         }
     }
-    
 
-    public function obtenerTodasCategorias() {
+
+    public function obtenerTodasCategorias()
+    {
         try {
             $query = "SELECT idCategoria, nombreCategoria FROM categoriasactividades";
             $result = $this->db->getConnection()->query($query);
@@ -528,12 +638,14 @@ class modeloActividad {
         }
     }
     // Agregar este método al modelo
-public function obtenerActividadesParaCalendario() {
-    try {
-        $query = "
+    public function obtenerActividadesParaCalendario()
+    {
+        try {
+            $query = "
             SELECT 
+                a.nombreActividad AS title,
                 a.idActividad,
-                a.descripcionActividad AS title,
+                a.descripcionActividad,
                 a.fechaInicio AS start,
                 a.fechaCulminacion AS end,
                 es.nombreEstado AS estado,
@@ -552,24 +664,25 @@ public function obtenerActividadesParaCalendario() {
                 a.fechaInicio
         ";
 
-        $result = $this->db->getConnection()->query($query);
+            $result = $this->db->getConnection()->query($query);
 
-        if (!$result) {
-            throw new Exception("Error al ejecutar la consulta: " . $this->db->getConnection()->error);
+            if (!$result) {
+                throw new Exception("Error al ejecutar la consulta: " . $this->db->getConnection()->error);
+            }
+
+            $actividades = [];
+            while ($row = $result->fetch_assoc()) {
+                $actividades[] = $row;
+            }
+
+            return $actividades;
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener actividades para calendario: " . $e->getMessage());
         }
-
-        $actividades = [];
-        while ($row = $result->fetch_assoc()) {
-            $actividades[] = $row;
-        }
-
-        return $actividades;
-    } catch (Exception $e) {
-        throw new Exception("Error al obtener actividades para calendario: " . $e->getMessage());
     }
-}
 
-    public function obtenerEstadisticasTrimestrales($fechaInicio, $fechaFin) {
+    public function obtenerEstadisticasTrimestrales($fechaInicio, $fechaFin)
+    {
         try {
             if (!strtotime($fechaInicio) || !strtotime($fechaFin)) {
                 throw new Exception("Fechas no válidas");

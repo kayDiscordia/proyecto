@@ -214,7 +214,7 @@ try {
                                 <tr class="border border-gray-300">
                                     <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">N°</th>
                                     <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Categoría</th>
-                                    <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Descripción</th>
+                                    <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Nombre</th>
                                     <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Empleado Responsable</th>
                                     <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Fecha Inicio</th>
                                     <th class="p-3 text-left text-sm font-semibold text-gray-700 border border-gray-300">Fecha Fin</th>
@@ -227,7 +227,7 @@ try {
                                     <tr class="hover:bg-gray-50 border border-gray-300">
                                         <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= $index + 1 ?></td>
                                         <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['categoriaActividad']) ?></td>
-                                        <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['descripcionActividad']) ?></td>
+                                        <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['nombreActividad']) ?></td>
                                         <td class="p-3 text-sm text-gray-700 border border-gray-300"><?= htmlspecialchars($actividad['nombreEmpleado']) ?></td>
                                         <td class="p-3 text-m text-gray-700 border border-gray-300"><?= date('d-m-Y', strtotime($actividad['fechaInicio'])) ?></td>
                                         <td class="p-3 text-m text-gray-700 border border-gray-300"><?= date('d-m-Y', strtotime($actividad['fechaCulminacion'])) ?></td>
@@ -283,6 +283,7 @@ try {
                 <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
                     <h2 class="text-xl font-semibold mb-4">Detalles de la Actividad</h2>
                     <p><strong>Descripción:</strong> <span id="detalleDescripcion"></span></p>
+                    <br>
                     <p><strong>Fecha Inicio:</strong> <span id="detalleFechaInicio"></span></p>
                     <p><strong>Fecha Culminación:</strong> <span id="detalleFechaCulminacion"></span></p>
                     <p><strong>Empleado:</strong> <span id="detalleEmpleado"></span></p>
