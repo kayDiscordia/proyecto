@@ -144,8 +144,9 @@ class modeloActividad
     {
         try {
             $query = "
-                SELECT 
+                SELECT                     
                     a.idActividad,
+                    a.nombreActividad,
                     a.descripcionActividad,
                     a.fechaInicio,
                     a.fechaCulminacion,
@@ -344,7 +345,7 @@ class modeloActividad
     public function actualizarEstadosActividades()
     {
         try {
-            $fechaActual = date('d-m-Y');
+            $fechaActual = date('Y-m-d');
 
             // 1. Detectar actividades que pasarán a "Retraso"
             $stmtRetraso = $this->db->getConnection()->prepare("

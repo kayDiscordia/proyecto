@@ -76,3 +76,7 @@ y cuando se cancela o culmina la actividad. (Al hacer esto coloca además la des
 -Se agrego la columna de nombreActividades en la tabla actividades
 -Se agrego limite de actividades basada en el cargo del empleado
 -se agrego una forma de visualizar si la actividad se cumplio o cancelo antes de que llegara a el estado "En progreso"
+
+
+11/5/2025 
+-:skull: muchos cambios

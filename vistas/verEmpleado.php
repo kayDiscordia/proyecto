@@ -66,7 +66,7 @@ try {
                             });
 
                             foreach ($listaEmpleados as $datos) { ?>
-                                <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location.href='modificarEmpleado.php?idEmpleado=<?= $datos['idEmpleado'] ?>'">
+                                <tr class="hover:bg-gray-50">
                                     <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($datos['nombres'] ?? '') ?></td>
                                     <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($datos['apellidos'] ?? '') ?></td>
                                     <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($datos['cedula'] ?? '') ?></td>
@@ -76,18 +76,19 @@ try {
                                         <span class="px-2 py-1 text-xs rounded-full 
                                             <?=
                                             ($datos['estado_nombre'] == 'Activo') ? 'bg-green-100 text-green-800' : (($datos['estado_nombre'] == 'Suspendido') ? 'bg-red-100 text-red-800' :
-                                                    'bg-yellow-100 text-yellow-800')
+                                                'bg-yellow-100 text-yellow-800')
                                             ?>">
                                             <?= htmlspecialchars($datos['estado_nombre'] ?? 'No definido') ?>
                                         </span>
                                     </td>
-                                    <td class="p-3 text-sm text-gray-700">
-                                        <a href="modificarEmpleado.php?idEmpleado=<?= $datos['idEmpleado'] ?>" class="text-blue-600 hover:text-blue-800 flex items-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 113.536 3.536L7.5 20.5H3v-4.5L16.732 3.732z" />
-                                            </svg>
-                                            <span class="text-sm font-medium">Modificar</span>
+                                    <td class="p-3 text-sm text-gray-700 flex justify-center items-center space-x-4">
+                                        <a href="modificarEmpleado.php?idEmpleado=<?= $datos['idEmpleado'] ?>" class="text-yellow-200 hover:text-yellow-400 flex items-center">
+                                            <i class="fas fa-edit mr-1"></i>
                                         </a>
+                                        <a href="verReportes.php?idEmpleado=<?= $datos['idEmpleado'] ?>" class="text-blue-600 hover:text-blue-800">
+                                            <i class="fas fa-eye mr-1"></i>
+                                        </a>
+
                                     </td>
                                 </tr>
                         <?php }
