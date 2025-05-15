@@ -1,23 +1,30 @@
 <?php
-require_once '../modelos/Database.php';
 require_once '../modelos/modeloActividad.php';
 
-$idActividad = $_GET['idActividad'] ?? null;
+$idActividad = $_POST['idActividad'];
+$descripcionCancelacion = $_POST['descripcionCancelacion'];
 
-if (!$idActividad) {
-    header("Location: verActividades.php?error=ID de actividad no proporcionado");
+$modeloActividad = new modeloActividad();
+
+try {
+    $modeloActividad->cancelarActividad($idActividad, $descripcionCancelacion);
+    header('Location: verActividades.php?mensaje=Cancelada');
     exit();
+} catch (Exception $e) {
+    die("Error al cancelar la actividad: " . $e->getMessage());
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cancelar Actividad</title>
     <link rel="stylesheet" href="CSS/output.css">
 </head>
+
 <body class="bg-[#E8EEFF]">
     <div class="flex items-center justify-center min-h-screen">
         <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
@@ -36,4 +43,5 @@ if (!$idActividad) {
         </div>
     </div>
 </body>
+
 </html>

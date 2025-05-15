@@ -81,6 +81,7 @@ class controladorEmpleado {
         return [];
     }
 }
+
     public function obtenerActividadesPorEmpleado($idEmpleado, $filtroEstado = 'todos', $fechaInicio = null, $fechaFin = null) {
     try {
         if (!is_numeric($idEmpleado)) {
@@ -89,15 +90,15 @@ class controladorEmpleado {
 
         // Obtener información básica del empleado
         $empleado = $this->modelo->obtenerEmpleadoPorId($idEmpleado);
-        
+
         // Validar y procesar parámetros de filtrado
         $filtros = array();
-        
+
         // Filtro por estado
-        if ($filtroEstado !== 'todos' && in_array($filtroEstado, array('Completada', 'En progreso', 'Cancelada'))) {
+        if ($filtroEstado !== 'todos' && in_array($filtroEstado, array('Completada', 'En progreso', 'Cancelada', 'Por iniciar', 'Retraso'))) {
             $filtros['estado'] = $filtroEstado;
         }
-        
+
         // Filtro por rango de fechas
         if (!empty($fechaInicio)) {
             if (!DateTime::createFromFormat('Y-m-d', $fechaInicio)) {
@@ -105,27 +106,31 @@ class controladorEmpleado {
             }
             $filtros['fecha_inicio'] = $fechaInicio;
         }
-        
+
         if (!empty($fechaFin)) {
             if (!DateTime::createFromFormat('Y-m-d', $fechaFin)) {
                 throw new Exception("Formato de fecha fin no válido");
             }
             $filtros['fecha_fin'] = $fechaFin;
         }
-        
+
         // Validar que fecha fin no sea menor que fecha inicio
         if (!empty($filtros['fecha_inicio']) && !empty($filtros['fecha_fin'])) {
             if (strtotime($filtros['fecha_fin']) < strtotime($filtros['fecha_inicio'])) {
                 throw new Exception("La fecha fin no puede ser anterior a la fecha inicio");
             }
         }
-        
+
         // Obtener actividades con filtros aplicados
         $actividades = $this->modelo->obtenerActividadesPorEmpleado($idEmpleado, $filtros);
-        
+
+        // Obtener todas las actividades del empleado (sin filtros)
+        $todasActividades = $this->modelo->obtenerTodasActividadesPorEmpleado($idEmpleado);
+
         return array(
             'empleado' => $empleado,
-            'actividades' => $actividades
+            'actividades' => $actividades,
+            'todasActividades' => $todasActividades // <-- para el resumen
         );
     } catch (Exception $e) {
         error_log("Error en controlador: " . $e->getMessage());
@@ -155,4 +160,6 @@ class controladorEmpleado {
             throw new Exception("Error al verificar la cédula: " . $e->getMessage());
         }
     }
+    
+    
 }

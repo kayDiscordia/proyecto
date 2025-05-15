@@ -23,6 +23,7 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         .grafica-container {
             background: white;
@@ -82,6 +83,17 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
         .badge-progress {
             background-color: #fef9c3;
             color: #854d0e;
+        }
+
+        .badge-init {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-delay {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #f87171;
         }
     </style>
 </head>
@@ -149,35 +161,49 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                                     <th>Completadas</th>
                                     <th>Canceladas</th>
                                     <th>En Progreso</th>
+                                    <th>Por Iniciar</th>
+                                    <th>En Retraso</th>
                                     <th>Total</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($datosGrafica as $trimestre): ?>
-                                    <tr>
-                                        <td class="font-medium"><?= htmlspecialchars($trimestre['trimestre']) ?></td>
-                                        <td>
-                                            <span class="badge badge-completed">
-                                                <i class="fas fa-check-circle mr-1"></i>
-                                                <?= htmlspecialchars($trimestre['Completada']) ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-cancelled">
-                                                <i class="fas fa-times-circle mr-1"></i>
-                                                <?= htmlspecialchars($trimestre['Cancelada']) ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-progress">
-                                                <i class="fas fa-spinner mr-1"></i>
-                                                <?= htmlspecialchars($trimestre['En progreso']) ?>
-                                            </span>
-                                        </td>
-                                        <td class="font-medium"><?= htmlspecialchars($trimestre['total']) ?></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
+    <?php foreach ($datosGrafica as $trimestre): ?>
+        <tr>
+            <td class="font-medium"><?= htmlspecialchars($trimestre['trimestre'] ?? '') ?></td>
+            <td>
+                <span class="badge badge-completed">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    <?= htmlspecialchars($trimestre['Completada'] ?? 0) ?>
+                </span>
+            </td>
+            <td>
+                <span class="badge badge-cancelled">
+                    <i class="fas fa-times-circle mr-1"></i>
+                    <?= htmlspecialchars($trimestre['Cancelada'] ?? 0) ?>
+                </span>
+            </td>
+            <td>
+                <span class="badge badge-progress">
+                    <i class="fas fa-spinner mr-1"></i>
+                    <?= htmlspecialchars($trimestre['En progreso'] ?? 0) ?>
+                </span>
+            </td>
+            <td>
+                <span class="badge badge-init">
+                    <i class="fas fa-hourglass-start mr-1"></i>
+                    <?= htmlspecialchars($trimestre['Por iniciar'] ?? 0) ?>
+                </span>
+            </td>
+            <td>
+                <span class="badge badge-delay">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    <?= htmlspecialchars($trimestre['En retraso'] ?? 0) ?>
+                </span>
+            </td>
+            <td class="font-medium"><?= htmlspecialchars($trimestre['total'] ?? 0) ?></td>
+        </tr>
+    <?php endforeach; ?>
+</tbody>
                         </table>
                     </div>
                 <?php endif; ?>
@@ -232,22 +258,38 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                 const completadas = datosGrafica.map(item => item.Completada);
                 const canceladas = datosGrafica.map(item => item.Cancelada);
                 const enProgreso = datosGrafica.map(item => item['En progreso']);
+                const porIniciar = datosGrafica.map(item => item['Por iniciar']);
+                const enRetraso = datosGrafica.map(item => item['En retraso']);
                 
                 const totalData = [
                     completadas.reduce((a, b) => a + b, 0),
                     canceladas.reduce((a, b) => a + b, 0),
                     enProgreso.reduce((a, b) => a + b, 0),
+                    porIniciar.reduce((a, b) => a + b, 0),
+                    enRetraso.reduce((a, b) => a + b, 0),
                 ];
 
                 chart = new Chart(ctx, {
                     type: 'pie',
                     data: {
-                        labels: ['Completadas', 'Canceladas', 'En Progreso'],
+                        labels: ['Completadas', 'Canceladas', 'En Progreso', 'Por Iniciar', 'En Retraso'],
                         datasets: [
                             {
                                 data: totalData,
-                                backgroundColor: ['#10B981', '#EF4444', '#F59E0B'],
-                                borderColor: ['#047857', '#B91C1C', '#B45309'],
+                                backgroundColor: [
+                                    '#10B981', // Completadas
+                                    '#EF4444', // Canceladas
+                                    '#F59E0B', // En Progreso
+                                    '#9CA3AF', // Por Iniciar (gris)
+                                    '#F87171'  // En Retraso
+                                ],
+                                borderColor: [
+                                    '#047857',
+                                    '#B91C1C',
+                                    '#B45309',
+                                    '#6B7280', // Por Iniciar (gris oscuro)
+                                    '#B91C1C'
+                                ],
                                 borderWidth: 1
                             }
                         ]
@@ -267,8 +309,39 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                     const { jsPDF } = window.jspdf;
                     const pdf = new jsPDF();
 
-                    const fechaInicio = document.getElementById('fechaInicio').value || 'N/A';
-                    const fechaFin = document.getElementById('fechaFin').value || 'N/A';
+                    let fechaInicio = document.getElementById('fechaInicio').value;
+                    let fechaFin = document.getElementById('fechaFin').value;
+
+                    // Si no hay filtro, calcular fechas del trimestre actual
+                    if (!fechaInicio || !fechaFin) {
+                        const hoy = new Date();
+                        const mes = hoy.getMonth(); // 0-11
+                        const anio = hoy.getFullYear();
+                        let trimestre = 1;
+                        if (mes >= 0 && mes <= 2) trimestre = 1;
+                        else if (mes >= 3 && mes <= 5) trimestre = 2;
+                        else if (mes >= 6 && mes <= 8) trimestre = 3;
+                        else if (mes >= 9 && mes <= 11) trimestre = 4;
+
+                        let inicio, fin;
+                        if (trimestre === 1) {
+                            inicio = new Date(anio, 0, 1);
+                            fin = new Date(anio, 2, 31);
+                        } else if (trimestre === 2) {
+                            inicio = new Date(anio, 3, 1);
+                            fin = new Date(anio, 5, 30);
+                        } else if (trimestre === 3) {
+                            inicio = new Date(anio, 6, 1);
+                            fin = new Date(anio, 8, 30);
+                        } else {
+                            inicio = new Date(anio, 9, 1);
+                            fin = new Date(anio, 11, 31);
+                        }
+                        // Formato YYYY-MM-DD
+                        const pad = n => n < 10 ? '0' + n : n;
+                        fechaInicio = `${inicio.getFullYear()}-${pad(inicio.getMonth() + 1)}-${pad(inicio.getDate())}`;
+                        fechaFin = `${fin.getFullYear()}-${pad(fin.getMonth() + 1)}-${pad(fin.getDate())}`;
+                    }
 
                     // Título del reporte
                     pdf.setFontSize(16);
@@ -295,6 +368,8 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                             1: { fillColor: [220, 252, 231] }, // Verde para completadas
                             2: { fillColor: [254, 226, 226] }, // Rojo para canceladas
                             3: { fillColor: [254, 249, 195] }, // Amarillo para en progreso
+                            4: { fillColor: [219, 234, 254] }, // Azul para por iniciar
+                            5: { fillColor: [254, 226, 226] }, // Rojo claro para en retraso
                         },
                     });
 

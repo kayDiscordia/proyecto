@@ -8,268 +8,237 @@ $controladorActividad = new controladorActividad();
 if (isset($_SESSION['id'])) {
     $user = $select->SelectuserByuser($_SESSION['id']);
 } else {
-    header(header: 'location: ../index.php');
+    header('location: ../index.php');
+    exit;
 }
 
 // Obtener actividades para el calendario
 $eventosCalendario = $controladorActividad->obtenerActividadesParaCalendario();
 
-// Obtener estadísticas
+// Obtener estadísticas y listado de actividades
 $actividades = $controladorActividad->obtenerActividades();
-$enProceso = $canceladas = $culminadas = 0;
+
+if (!is_array($actividades)) {
+    die('Error: La función obtenerActividades() no devolvió un array.');
+}
+
+// Inicializar contadores
+$porIniciar = $enProceso = $retraso = $canceladas = $culminadas = $pendientes = 0;
+$totalActividades = count($actividades);
+$actividadesListado = [];
 
 foreach ($actividades as $actividad) {
-    switch ($actividad['estadoActividad']) {
-        case 'En progreso': $enProceso++; break;
-        case 'Cancelada': $canceladas++; break;
-        case 'Completada': $culminadas++; break;
+    // Verificar y asignar valores por defecto si las claves no existen
+    $nombre = $actividad['nombreActividad'] ?? 'Sin nombre';
+    $descripcion = $actividad['descripcionActividad'] ?? 'Sin descripción';
+    $fechaInicio = $actividad['fechaInicio'] ?? date('Y-m-d');
+    $fechaFin = $actividad['fechaCulminacion'] ?? date('Y-m-d');
+    $estado = isset($actividad['estadoActividad']) ? trim($actividad['estadoActividad']) : 'Desconocido';
+
+    // Para estadísticas
+    switch ($estado) {
+        case 'Por Iniciar':
+            $porIniciar++;
+            $color = '#FBBF24'; // Amarillo
+            $icono = '⏱️'; // Icono de reloj
+            break;
+        case 'Retraso':
+            $retraso++;
+            $color = '#60A5FA'; // Azul
+            $icono = '📅'; // Icono de calendario
+            break;
+        case 'En progreso':
+            $enProceso++;
+            $color = '#F97316'; // Naranja
+            $icono = '🚧'; // Icono de construcción
+            break;
+        case 'Cancelada':
+            $canceladas++;
+            $color = '#EF4444'; // Rojo
+            $icono = '❌'; // Icono de cancelación
+            break;
+        case 'Completada':
+            $culminadas++;
+            $color = '#10B981'; // Verde
+            $icono = '✅'; // Icono de completado
+            break;
+        default:
+            $color = '#94A3B8'; // Gris por defecto
+            $icono = '❓'; // Icono de desconocido
+            break;
     }
+
+    // Para listado de actividades
+    $actividadesListado[] = [
+        'nombre' => $nombre,
+        'descripcion' => $descripcion,
+        'fechaInicio' => $fechaInicio,
+        'fechaFin' => $fechaFin,
+        'estado' => $estado,
+        'color' => $color,
+        'icono' => $icono
+    ];
 }
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Control</title>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- FullCalendar CSS -->
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="CSS/output.css">
-  <!-- Reemplaza la sección de estilos de tu home.php con esto: -->
-<style>
-    /* Estilos para colores según estado */
-    .bg-yellow-100 { background-color: #FEF3C7; }
-    .text-yellow-800 { color: #92400E; }
-    .bg-red-100 { background-color: #FEE2E2; }
-    .text-red-800 { color: #B91C1C; }
-    .bg-green-100 { background-color: #D1FAE5; }
-    .text-green-800 { color: #065F46; }
+    <link rel="stylesheet" href="CSS/animaciones.css">
+    <!-- SweetAlert para mostrar detalles -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    /* Estilos para el calendario - Versión corregida */
-    #calendar {
-        max-width: 1100px;
-        margin: 0 auto;
-        background: white;
-        border-radius: 0.5rem;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    }
-    
-    .fc {
-        font-family: inherit;
-    }
-    
-    .fc-header-toolbar {
-        margin-bottom: 1em;
-    }
-    
-    .fc-daygrid-day {
-        overflow: hidden;
-    }
-    
-    .fc-event {
-        cursor: pointer;
-        font-size: 0.75em;
-        padding: 1px 3px;
-        margin: 1px 2px;
-        border-radius: 3px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        display: block;
-    }
-    
-    .fc-daygrid-event-harness {
-        margin: 1px 0;
-    }
-    
-    .fc-event-main {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    /* Colores de eventos según estado - Versión corregida */
-    .event-en-progreso {
-        background-color: rgba(245, 158, 11, 0.8);
-        border-color: rgba(245, 158, 11, 0.9);
-        color: #92400E;
-    }
-    
-    .event-cancelada {
-        background-color: rgba(239, 68, 68, 0.8);
-        border-color: rgba(239, 68, 68, 0.9);
-        color: #B91C1C;
-    }
-    
-    .event-completada {
-        background-color: rgba(16, 185, 129, 0.8);
-        border-color: rgba(16, 185, 129, 0.9);
-        color: #065F46;
-    }
-    
-    .fc-daygrid-day-frame {
-        min-height: 100px;
-        overflow: hidden;
-    }
-    
-    .fc-scrollgrid-sync-table {
-        overflow: hidden;
-    }
-    
-    /* Modal (mantener igual) */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 100;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.4);
-    }
-    
-    .modal-content {
-        background-color: #fefefe;
-        margin: 10% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 600px;
-        border-radius: 0.5rem;
-    }
-    
-    .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-</style>
 </head>
+
 <body class="bg-[#E8EEFF]">
-    <div class="flex h-screen" x-data="{ isCollapsed: false }">
+    <div class="flex h-screen" x-data="{ isCollapsed: false, activeTab: 'calendario' }">
         <!-- Sidebar -->
         <?php include 'modulos/sidebar.php'; ?>
         <!-- Main content -->
         <main class="flex-1 p-6 overflow-y-auto">
             <h1 class="text-2xl font-semibold mb-4">Panel de Actividades</h1>
-     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <div class="p-4 rounded-lg shadow event-en-progreso">
-        <h2 class="text-lg font-semibold mb-2 text-white">Actividades en Proceso</h2>
-        <p class="text-white"><?= $enProceso ?> actividades</p>
-    </div>
-    <div class="p-4 rounded-lg shadow event-cancelada">
-        <h2 class="text-lg font-semibold mb-2 text-white">Actividades Canceladas</h2>
-        <p class="text-white"><?= $canceladas ?> actividades</p>
-    </div>
-    <div class="p-4 rounded-lg shadow event-completada">
-        <h2 class="text-lg font-semibold mb-2 text-white">Actividades Culminadas</h2>
-        <p class="text-white"><?= $culminadas ?> actividades</p>
-    </div>
-</div>
-            <!-- Sección del Calendario -->
-            <div class="bg-white p-4 rounded-lg shadow mb-6">
-                <h2 class="text-xl font-semibold mb-4">Calendario de Actividades</h2>
-                <div id="calendar"></div>
+            <!-- Contenido de pestañas -->
+            <div>
+                <!-- Grid de estadísticas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    <!-- Recuadro Total -->
+                    <div class="status-card bg-indigo-100 text-indigo-800">
+                        <h2 class="text-lg font-semibold mb-2">Total Actividades</h2>
+                        <p class="text-2xl font-bold"><?= $totalActividades ?></p>
+                    </div>
+
+                    <!-- Recuadro Por Iniciar -->
+                    <div class="status-card bg-yellow-100 text-yellow-800">
+                        <h2 class="text-lg font-semibold mb-2">Por Iniciar</h2>
+                        <p class="text-2xl font-bold"><?= $porIniciar ?></p>
+                    </div>
+
+                    <!-- Recuadro En Proceso -->
+                    <div class="status-card bg-orange-100 text-orange-800">
+                        <h2 class="text-lg font-semibold mb-2">En Proceso</h2>
+                        <p class="text-2xl font-bold"><?= $enProceso ?></p>
+                    </div>
+
+                    <!-- Recuadro Pendientes -->
+                    <div class="status-card bg-blue-100 text-blue-800">
+                        <h2 class="text-lg font-semibold mb-2">Retrasadas</h2>
+                        <p class="text-2xl font-bold"><?= $retraso ?></p>
+                    </div>
+
+                    <!-- Recuadro Canceladas -->
+                    <div class="status-card bg-red-100 text-red-800">
+                        <h2 class="text-lg font-semibold mb-2">Canceladas</h2>
+                        <p class="text-2xl font-bold"><?= $canceladas ?></p>
+                    </div>
+
+                    <!-- Recuadro Culminadas -->
+                    <div class="status-card bg-green-100 text-green-800">
+                        <h2 class="text-lg font-semibold mb-2">Culminadas</h2>
+                        <p class="text-2xl font-bold"><?= $culminadas ?></p>
+                    </div>
+                </div>
             </div>
-            
-            <!-- Modal para detalles -->
-            <div id="eventModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h2 class="text-xl font-semibold mb-4" id="modalTitle"></h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <p><strong>Fecha Inicio:</strong> <span id="modalStartDate"></span></p>
-                            <p><strong>Fecha Fin:</strong> <span id="modalEndDate"></span></p>
-                            <p><strong>Estado:</strong> <span id="modalStatus"></span></p>
+            <!-- Pestañas -->
+            <div class="tabs">
+                <div class="tab" :class="{ 'active': activeTab === 'calendario' }" @click="activeTab = 'calendario'">
+                    <i class="fas fa-calendar-alt mr-2"></i> Calendario
+                </div>
+                <div class="tab" :class="{ 'active': activeTab === 'listado' }" @click="activeTab = 'listado'">
+                    <i class="fas fa-list-ul mr-2"></i> Listado
+                </div>
+            </div>
+
+            <div class="tab-content" :class="{ 'active': activeTab === 'calendario' }">
+                <!-- Calendario -->
+                <div id="calendar" class="mb-6"></div>
+            </div>
+
+            <div class="tab-content" :class="{ 'active': activeTab === 'listado' }">
+                <!-- Listado de actividades con iconos -->
+                <h2 class="text-xl font-semibold mb-4">Listado de Actividades</h2>
+                <div class="actividades-container">
+                    <?php foreach ($actividadesListado as $actividad): ?>
+                        <div class="actividad-card" style="border-left-color: <?= $actividad['color'] ?>;">
+                            <div class="actividad-header">
+                                <div class="actividad-icono"><?= $actividad['icono'] ?></div>
+                                <h3 class="actividad-nombre"><?= htmlspecialchars($actividad['nombre']) ?></h3>
+                            </div>
+                            <span class="actividad-estado" style="background-color: <?= $actividad['color'] ?>20; color: <?= $actividad['color'] ?>;">
+                                <?= $actividad['estado'] ?>
+                            </span>
+                            <div class="actividad-fechas">
+                                <div><i class="far fa-calendar-alt mr-1"></i> Inicio: <?= date('d/m/Y', strtotime($actividad['fechaInicio'])) ?></div>
+                                <div><i class="far fa-calendar-check mr-1"></i> Fin: <?= date('d/m/Y', strtotime($actividad['fechaFin'])) ?></div>
+                            </div>
+                            <p class="actividad-descripcion"><?= htmlspecialchars($actividad['descripcion']) ?></p>
                         </div>
-                        <div>
-                            <p><strong>Empleado:</strong> <span id="modalEmployee"></span></p>
-                            <p><strong>Categoría:</strong> <span id="modalCategory"></span></p>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <p><strong>Descripción:</strong></p>
-                        <p id="modalDescription" class="mt-2"></p>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </main>
     </div>
 
     <!-- FullCalendar JS -->
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.min.js'></script>
-    
-   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const calendarEl = document.getElementById('calendar');
-        const modal = document.getElementById('eventModal');
-        const span = document.getElementsByClassName('close')[0];
-        
-        // Función para formatear fecha sin hora
-        function formatDate(dateStr) {
-            if (!dateStr) return 'No especificada';
-            
-            const date = new Date(dateStr);
-            if (isNaN(date.getTime())) return dateStr;
-            
-            // Opción 1: Formato numérico (DD/MM/YYYY)
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
-            
-            /* Opción 2: Formato con nombre de mes
-            const options = { day: '2-digit', month: 'long', year: 'numeric' };
-            return date.toLocaleDateString('es-ES', options);
-            */
-        }
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.min.js"></script>
 
-        // Configurar el calendario
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'es',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-            },
-            events: <?= json_encode($eventosCalendario) ?>,
-            eventClick: function(info) {
-                const event = info.event;
-                
-                // Llenar el modal con los datos del evento
-                document.getElementById('modalTitle').textContent = event.title;
-                document.getElementById('modalStartDate').textContent = formatDate(event.start);
-                document.getElementById('modalEndDate').textContent = formatDate(event.end);
-                document.getElementById('modalStatus').textContent = event.extendedProps.estado || 'No especificado';
-                document.getElementById('modalEmployee').textContent = event.extendedProps.empleado || 'No asignado';
-                document.getElementById('modalCategory').textContent = event.extendedProps.categoria || 'Sin categoría';
-                document.getElementById('modalDescription').textContent = event.extendedProps.description || 'Sin descripción';
-                
-                // Mostrar el modal
-                modal.style.display = 'block';
-            }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: <?= json_encode($eventosCalendario) ?>,
+                eventClick: function(info) {
+                    const event = info.event;
+                    const descripcion = event.extendedProps.description || 'Sin descripción';
+                    const estado = event.extendedProps.estado || 'Estado desconocido';
+                    const empleado = event.extendedProps.empleado || 'No asignado';
+                    const categoria = event.extendedProps.categoria || 'Sin categoría';
+
+                    Swal.fire({
+                        title: event.title,
+                        html: `
+                            <div class="text-left">
+                                <p><strong>Estado:</strong> ${estado}</p>
+                                <p><strong>Empleado:</strong> ${empleado}</p>
+                                <p><strong>Categoría:</strong> ${categoria}</p>
+                                <p><strong>Fecha Inicio:</strong> ${event.start ? event.start.toLocaleDateString() : 'No especificada'}</p>
+                                ${event.end ? `<p><strong>Fecha Fin:</strong> ${event.end.toLocaleDateString()}</p>` : ''}
+                                <p class="mt-2"><strong>Descripción:</strong></p>
+                                <p class="text-gray-700">${descripcion}</p>
+                            </div>
+                        `,
+                        confirmButtonText: 'Cerrar',
+                        width: '600px',
+                        background: '#ffffff',
+                        backdrop: `
+                            rgba(0,0,0,0.5)
+                            url("/images/nyan-cat.gif")
+                            left top
+                            no-repeat
+                        `
+                    });
+                }
+            });
+
+            calendar.render();
         });
-        
-        calendar.render();
-        
-        // Cerrar el modal al hacer clic en la X
-        span.onclick = function() {
-            modal.style.display = 'none';
-        }
-        
-        // Cerrar el modal al hacer clic fuera de él
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
-        }
-    });
-</script>
+    </script>
 </body>
+
 </html>

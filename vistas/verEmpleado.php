@@ -17,10 +17,24 @@ try {
 } catch (Exception $e) {
     die("Error al obtener empleados: " . $e->getMessage());
 }
+
+$nombreDepartamentoUsuario = null;
+foreach ($listaEmpleados as $empleadoTmp) {
+    if (isset($empleadoTmp['idEmpleado']) && $empleadoTmp['idEmpleado'] == $user['idEmpleado']) {
+        $nombreDepartamentoUsuario = $empleadoTmp['departamento_nombre'];
+        break;
+    }
+}
+if ($nombreDepartamentoUsuario) {
+    $listaEmpleados = array_filter($listaEmpleados, function($empleado) use ($nombreDepartamentoUsuario) {
+        return isset($empleado['departamento_nombre']) && $empleado['departamento_nombre'] == $nombreDepartamentoUsuario;
+    });
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,6 +42,7 @@ try {
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="css/output.css">
 </head>
+
 <body class="bg-[#E8EEFF]">
     <div class="flex h-screen" x-data="{ isCollapsed: false }">
         <!-- Sidebar -->
@@ -54,17 +69,17 @@ try {
                             <tr>
                                 <td colspan="7" class="p-3 text-center text-gray-700">No hay empleados registrados.</td>
                             </tr>
-                        <?php } else { 
+                            <?php } else {
                             // Ordenar por estado: Activo(1) -> Permisado(2) -> Suspendido(3)
-                            usort($listaEmpleados, function($a, $b) {
+                            usort($listaEmpleados, function ($a, $b) {
                                 $orden = ['Activo' => 1, 'Permisado' => 2, 'Suspendido' => 3];
                                 $aOrden = $orden[$a['estado_nombre']] ?? 4;
                                 $bOrden = $orden[$b['estado_nombre']] ?? 4;
                                 return $aOrden - $bOrden;
                             });
-                            
+
                             foreach ($listaEmpleados as $datos) { ?>
-                                <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location.href='modificarEmpleado.php?idEmpleado=<?= $datos['idEmpleado'] ?>'">
+                                <tr class="hover:bg-gray-50">
                                     <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($datos['nombres'] ?? '') ?></td>
                                     <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($datos['apellidos'] ?? '') ?></td>
                                     <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($datos['cedula'] ?? '') ?></td>
@@ -72,24 +87,24 @@ try {
                                     <td class="p-3 text-sm text-gray-700"><?= htmlspecialchars($datos['departamento_nombre'] ?? '') ?></td>
                                     <td class="p-3 text-sm text-gray-700">
                                         <span class="px-2 py-1 text-xs rounded-full 
-                                            <?= 
-                                                ($datos['estado_nombre'] == 'Activo') ? 'bg-green-100 text-green-800' : 
-                                                (($datos['estado_nombre'] == 'Suspendido') ? 'bg-red-100 text-red-800' : 
-                                                'bg-yellow-100 text-yellow-800') 
+                                            <?=
+                                            ($datos['estado_nombre'] == 'Activo') ? 'bg-green-100 text-green-800' : (($datos['estado_nombre'] == 'Suspendido') ? 'bg-red-100 text-red-800' :
+                                                'bg-yellow-100 text-yellow-800')
                                             ?>">
                                             <?= htmlspecialchars($datos['estado_nombre'] ?? 'No definido') ?>
                                         </span>
                                     </td>
-                                    <td class="p-3 text-sm text-gray-700">
-                                        <a href="modificarEmpleado.php?idEmpleado=<?= $datos['idEmpleado'] ?>" class="text-blue-600 hover:text-blue-800 flex items-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 113.536 3.536L7.5 20.5H3v-4.5L16.732 3.732z" />
-                                            </svg>
-                                            <span class="text-sm font-medium">Modificar</span>
+                                    <td class="p-3 text-sm text-gray-700 flex justify-center items-center space-x-4">
+                                        <a href="modificarEmpleado.php?idEmpleado=<?= $datos['idEmpleado'] ?>" class="text-yellow-200 hover:text-yellow-400 flex items-center">
+                                            <i class="fas fa-edit mr-1"></i>
                                         </a>
+                                        <a href="verReportes.php?idEmpleado=<?= $datos['idEmpleado'] ?>" class="text-blue-600 hover:text-blue-800">
+                                            <i class="fas fa-eye mr-1"></i>
+                                        </a>
+
                                     </td>
                                 </tr>
-                            <?php } 
+                        <?php }
                         } ?>
                     </tbody>
                 </table>
@@ -103,4 +118,5 @@ try {
         </main>
     </div>
 </body>
+
 </html>

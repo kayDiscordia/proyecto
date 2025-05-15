@@ -41,3 +41,42 @@ PD: abre el txt con visual para evitar morir de cancer
 -reorganizado verreportes(orientacion de quien son las actividades) LISTO
 -ya ser mas especifico en el panel de control(ser mas especificos con los indicadores) LISTO
 -asignar actividades solo a los empleados activos LISTO
+
+26/04/2025 Santiago es tonto y no le furula el git
+
+AAAAAAAAAAAAAAAAAAAA
+
+28/4/2025
+
+-Se agregaron los estados de Por Inciar y Retraso
+-El sistema automaticamente asigna estos dos estados basado en la fecha de culminacion e inicio
+-Se agrego localmente una tarea programada para que realice el cambio cada dia a las 8 PM. (Tambien lo hace al usar el comando)
+
+29/4/2025 La pala se alza
+
+-Ahora el modal de detalles muestra la descripcion del estado
+-Ahora culminar y cancelar usan un modal bonito
+-Intente cambiar en el modal de detalles el Descripcion estado pero eso causa que el html se cierre (??????)
+
+2/5/2025 La venganza de la pala
+
+-Se agrego la tabla historialactividad
+-ahora se registran los cambios que se le hagan a la actividad mediante el modal de editar (se registran muy troglodita pero es algo)
+-se agrego un boton para acceder al historial desde verActividades
+
+6/2/2025 La pala contada
+
+-El historial registra los eventos de la creacion de la actividad, las ediciones que se le hagan desde el editarActividad
+y cuando se cancela o culmina la actividad. (Al hacer esto coloca además la descripcion de la actividad)
+-la tabla del historial ahora se ve un poco mejor.
+
+9/5/2025
+
+-Mejora significativa al aspecto del historial de actividades
+-Se agrego la columna de nombreActividades en la tabla actividades
+-Se agrego limite de actividades basada en el cargo del empleado
+-se agrego una forma de visualizar si la actividad se cumplio o cancelo antes de que llegara a el estado "En progreso"
+
+
+11/5/2025 
+-:skull: muchos cambios
