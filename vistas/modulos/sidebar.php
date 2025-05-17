@@ -295,10 +295,15 @@ $departamento = isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento']
                         x-transition:leave-start="opacity-100 max-h-40"
                         x-transition:leave-end="opacity-0 max-h-0"
                         class="mt-2 space-y-2 overflow-hidden submenu">
+                        <button onclick="location.href='../vistas/graficaSemanalMensual.php'" 
+                                class="w-full text-left px-6 py-1 text-sm hover:bg-gray-100 rounded flex items-center nav-link">
+                            Reportes por semana
+                        </button>
                         <button onclick="location.href='../vistas/graficaTrimestral.php'" 
                                 class="w-full text-left px-6 py-1 text-sm hover:bg-gray-100 rounded flex items-center nav-link">
                             Reportes por trimestre
                         </button>
+                       
                     </div>
                 </div>
             </div>

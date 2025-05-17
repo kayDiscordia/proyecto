@@ -1,4 +1,3 @@
-[file content begin]
 <?php
 session_start();
 require_once '../controladores/controladorActividad.php';
@@ -8,10 +7,10 @@ $controlador = new controladorActividad();
 // Obtener fechas y departamento del formulario si existen
 $fechaInicio = $_GET['fechaInicio'] ?? '';
 $fechaFin = $_GET['fechaFin'] ?? '';
-$idDepartamento = $_GET['idDepartamento'] ?? ($_SESSION['idDepartamento'] ?? null);
+$idDepartamento = $_GET['idDepartamento'] ?? ($_SESSION['idDepartamento'] ?? null); // Usar departamento de sesión si no se especifica
 
 // Obtener datos para la gráfica
-$datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fechaFin, $idDepartamento);
+$datosGrafica = $controlador->obtenerDatosGraficaSemanalMensual($fechaInicio, $fechaFin, $idDepartamento);
 ?>
 
 <!DOCTYPE html>
@@ -19,7 +18,7 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte Trimestral de Actividades</title>
+    <title>Reporte Semanal/Mensual de Actividades</title>
     <link rel="stylesheet" href="CSS/output.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -36,17 +35,10 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
             text-align: center;
         }
         
-        .chart-container {
-            position: relative;
-            height: 500px;
-            width: 100%;
-        }
-        
         #graficaActividades {
             display: block;
-            max-height: 500px;
+            max-height: 400px;
             width: 100%;
-            margin-top: 1rem;
         }
 
         .resumen-table {
@@ -125,13 +117,13 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
     </style>
 </head>
 <body class="bg-[#E8EEFF]">
-    <div class="flex h-screen">
+    <div class="flex h-screen" x-data="{ isCollapsed: false, tipoGrafica: 'semanal' }">
         <!-- Sidebar -->
         <?php include 'modulos/sidebar.php' ?>
         
         <!-- Main container -->
         <main class="flex-1 p-6 overflow-y-auto bg-e8eeff">
-            <h2 class="text-2xl font-semibold mb-4">Reporte Trimestral de Actividades</h2>
+            <h2 class="text-2xl font-semibold mb-4">Reporte Semanal/Mensual de Actividades</h2>
             
             <!-- Filtros -->
             <div class="bg-white p-4 rounded-lg shadow mb-6">
@@ -150,19 +142,24 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                     </div>
                     
                     <div>
-                        <label for="idDepartamento" class="block text-sm font-medium text-gray-700 mb-1">Departamento</label>
-                       
+                    <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700">Departamento</label>
+                            <input type="text" readonly
+                                value="<?php echo htmlspecialchars($nombreDepartamento); ?>"
+                                class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            <input type="hidden" name="idDepartamento" value="<?php echo htmlspecialchars($idDepartamento); ?>">
+                        </div>
                     </div>
                     
                     <div class="md:col-span-3 flex justify-end space-x-3">
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center">
                             <i class="fas fa-filter mr-2"></i>Filtrar
                         </button>
-                        <button type="button" id="btnTrimestreActual" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-300 ease-in-out flex items-center">
-                            <i class="fas fa-calendar-alt mr-2"></i>Trimestre Actual
+                        <button type="button" id="btnMesActual" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-300 ease-in-out flex items-center">
+                            <i class="fas fa-calendar-alt mr-2"></i>Mes Actual
                         </button>
-                        <button type="button" id="btnAnioActual" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-300 ease-in-out flex items-center">
-                            <i class="fas fa-calendar mr-2"></i>Año Actual
+                        <button type="button" id="btnSemanaActual" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-300 ease-in-out flex items-center">
+                            <i class="fas fa-calendar-week mr-2"></i>Semana Actual
                         </button>
                         <button type="button" id="btnLimpiarFiltro" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 flex items-center">
                             <i class="fas fa-eraser mr-2"></i>Limpiar Filtro
@@ -174,10 +171,18 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                 </form>
             </div>
 
-            <!-- Resumen trimestral -->
+            <!-- Resumen semanal/mensual -->
             <div class="bg-white p-6 rounded-lg shadow mb-6">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Resumen de Actividades por Trimestre</h3>
+                    <h3 class="text-lg font-medium text-gray-900">Resumen de Actividades</h3>
+                    <div class="tab-container">
+                        <button @click="tipoGrafica = 'semanal'" :class="{ 'active': tipoGrafica === 'semanal' }" class="tab-button">
+                            <i class="fas fa-calendar-week mr-1"></i> Semanal
+                        </button>
+                        <button @click="tipoGrafica = 'mensual'" :class="{ 'active': tipoGrafica === 'mensual' }" class="tab-button">
+                            <i class="fas fa-calendar-alt mr-1"></i> Mensual
+                        </button>
+                    </div>
                 </div>
                 
                 <?php if (isset($datosGrafica['error'])): ?>
@@ -192,7 +197,7 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                         <table class="resumen-table" id="resumenTable">
                             <thead>
                                 <tr>
-                                    <th>Trimestre</th>
+                                    <th>Período</th>
                                     <th>Completadas</th>
                                     <th>Canceladas</th>
                                     <th>En Progreso</th>
@@ -247,40 +252,34 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
             <!-- Gráfica -->
             <div class="grafica-container">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Estadísticas de Actividades por Trimestre</h3>
+                    <h3 class="text-lg font-medium text-gray-900">Estadísticas de Actividades</h3>
                 </div>
                 
-                <div class="chart-container">
-                    <canvas id="graficaActividades"></canvas>
-                </div>
+                <canvas id="graficaActividades"></canvas>
             </div>
         </main>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Configuración del botón de trimestre actual
-            document.getElementById('btnTrimestreActual').addEventListener('click', function() {
+            // Configuración del botón de mes actual
+            document.getElementById('btnMesActual').addEventListener('click', function() {
                 const now = new Date();
-                const currentMonth = now.getMonth();
-                const currentQuarter = Math.floor(currentMonth / 3);
-                
-                const firstMonth = currentQuarter * 3;
-                const lastMonth = firstMonth + 2;
-                
-                const firstDay = new Date(now.getFullYear(), firstMonth, 1);
-                const lastDay = new Date(now.getFullYear(), lastMonth + 1, 0);
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
                 
                 document.getElementById('fechaInicio').valueAsDate = firstDay;
                 document.getElementById('fechaFin').valueAsDate = lastDay;
                 document.querySelector('form').submit();
             });
 
-            // Configuración del botón de año actual
-            document.getElementById('btnAnioActual').addEventListener('click', function() {
+            // Configuración del botón de semana actual
+            document.getElementById('btnSemanaActual').addEventListener('click', function() {
                 const now = new Date();
-                const firstDay = new Date(now.getFullYear(), 0, 1);
-                const lastDay = new Date(now.getFullYear(), 11, 31);
+                const firstDay = new Date(now);
+                firstDay.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)); // Lunes de esta semana
+                const lastDay = new Date(firstDay);
+                lastDay.setDate(firstDay.getDate() + 6); // Domingo de esta semana
                 
                 document.getElementById('fechaInicio').valueAsDate = firstDay;
                 document.getElementById('fechaFin').valueAsDate = lastDay;
@@ -295,13 +294,13 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                 document.querySelector('form').submit();
             });
 
-            // Configurar gráfica con el nuevo estilo
+            // Configurar gráfica
             const ctx = document.getElementById('graficaActividades').getContext('2d');
             const datosGrafica = <?= json_encode(isset($datosGrafica['error']) ? [] : $datosGrafica) ?>;
             
-            let chart; // Variable para almacenar la instancia del gráfico
+            let chart; // Variable para almacenar la gráfica
             
-            function renderChart() {
+            function renderChart(tipo) {
                 if (chart) {
                     chart.destroy();
                 }
@@ -354,73 +353,57 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                 ];
                 
                 chart = new Chart(ctx, {
-                    type: 'bar',
+                    type: tipo === 'semanal' ? 'bar' : 'bar',
                     data: {
                         labels: labels,
                         datasets: datasets
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false,
                         scales: {
                             x: {
-                                stacked: false,
+                                stacked: tipo === 'semanal' ? false : true,
                                 title: {
                                     display: true,
-                                    text: 'Trimestres'
-                                },
-                                grid: {
-                                    display: false
+                                    text: tipo === 'semanal' ? 'Semanas' : 'Meses'
                                 }
                             },
                             y: {
-                                stacked: false,
+                                stacked: tipo === 'semanal' ? false : true,
                                 beginAtZero: true,
                                 title: {
                                     display: true,
                                     text: 'Cantidad de Actividades'
-                                },
-                                ticks: {
-                                    stepSize: 1
                                 }
                             }
                         },
                         plugins: {
                             legend: {
-                                position: 'top',
-                                labels: {
-                                    boxWidth: 12,
-                                    padding: 20
-                                }
+                                position: 'top'
                             },
                             tooltip: {
                                 mode: 'index',
-                                intersect: false,
-                                callbacks: {
-                                    label: function(context) {
-                                        return context.dataset.label + ': ' + context.raw;
-                                    }
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Actividades por Trimestre',
-                                font: {
-                                    size: 16
-                                }
+                                intersect: false
                             }
-                        },
-                        interaction: {
-                            mode: 'nearest',
-                            axis: 'x',
-                            intersect: false
                         }
                     }
                 });
             }
             
             // Renderizar gráfica inicial
-            renderChart();
+            renderChart('semanal');
+            
+            // Escuchar cambios en las pestañas
+            document.addEventListener('alpine:init', () => {
+                Alpine.data('graficaData', () => ({
+                    tipoGrafica: 'semanal',
+                    init() {
+                        this.$watch('tipoGrafica', (value) => {
+                            renderChart(value);
+                        });
+                    }
+                }));
+            });
 
             // Configurar botón para exportar el PDF
             document.getElementById('exportarPDF').addEventListener('click', function() {
@@ -430,37 +413,33 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                 let fechaInicio = document.getElementById('fechaInicio').value;
                 let fechaFin = document.getElementById('fechaFin').value;
                 let departamentoSelect = document.getElementById('idDepartamento');
-                let departamentoTexto = departamentoSelect ? departamentoSelect.options[departamentoSelect.selectedIndex].text : 'Todos';
+                let departamentoTexto = departamentoSelect.options[departamentoSelect.selectedIndex].text;
 
-                // Si no hay filtro, calcular fechas del trimestre actual
+                // Si no hay filtro, calcular fechas del mes actual
                 if (!fechaInicio || !fechaFin) {
-                    const now = new Date();
-                    const currentMonth = now.getMonth();
-                    const currentQuarter = Math.floor(currentMonth / 3);
-                    
-                    const firstMonth = currentQuarter * 3;
-                    const lastMonth = firstMonth + 2;
-                    
-                    const firstDay = new Date(now.getFullYear(), firstMonth, 1);
-                    const lastDay = new Date(now.getFullYear(), lastMonth + 1, 0);
+                    const hoy = new Date();
+                    const mes = hoy.getMonth();
+                    const anio = hoy.getFullYear();
+                    const primerDia = new Date(anio, mes, 1);
+                    const ultimoDia = new Date(anio, mes + 1, 0);
                     
                     const pad = n => n < 10 ? '0' + n : n;
-                    fechaInicio = `${firstDay.getFullYear()}-${pad(firstDay.getMonth() + 1)}-${pad(firstDay.getDate())}`;
-                    fechaFin = `${lastDay.getFullYear()}-${pad(lastDay.getMonth() + 1)}-${pad(lastDay.getDate())}`;
+                    fechaInicio = `${primerDia.getFullYear()}-${pad(primerDia.getMonth() + 1)}-${pad(primerDia.getDate())}`;
+                    fechaFin = `${ultimoDia.getFullYear()}-${pad(ultimoDia.getMonth() + 1)}-${pad(ultimoDia.getDate())}`;
                 }
 
                 // Título del reporte
                 pdf.setFontSize(16);
-                pdf.text('Reporte Trimestral de Actividades', 10, 10);
+                pdf.text('Reporte de Actividades', 10, 10);
 
                 // Fechas y departamento del reporte
                 pdf.setFontSize(12);
                 pdf.text(`Fecha Inicio: ${fechaInicio}`, 10, 20);
                 pdf.text(`Fecha Fin: ${fechaFin}`, 10, 30);
-                pdf.text(`Departamento: ${departamentoTexto}`, 10, 40);
+                pdf.text(`Departamento: ${departamentoTexto || 'Todos'}`, 10, 40);
 
                 // Resumen
-                pdf.text('Resumen de Actividades por Trimestre', 10, 50);
+                pdf.text('Resumen de Actividades', 10, 50);
 
                 const resumenTable = document.getElementById('resumenTable');
                 const resumenRows = [...resumenTable.rows].map(row => [...row.cells].map(cell => cell.innerText));
@@ -483,7 +462,7 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                 // Agregar gráfica al PDF
                 const finalY = pdf.lastAutoTable.finalY + 10;
                 if (chart) {
-                    const chartImage = chart.canvas.toDataURL('image/png');
+                    const chartImage = chart.toBase64Image();
                     const pageWidth = pdf.internal.pageSize.getWidth();
                     const imgWidth = 150;
                     const imgHeight = (chart.canvas.height / chart.canvas.width) * imgWidth;
@@ -491,7 +470,7 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                     pdf.addImage(chartImage, 'PNG', centerX, finalY, imgWidth, imgHeight);
                 }
 
-                pdf.save('reporte_actividades_trimestral.pdf');
+                pdf.save('reporte_actividades.pdf');
             });
         });
     </script>

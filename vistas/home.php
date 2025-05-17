@@ -7,182 +7,185 @@ $controladorActividad = new controladorActividad();
 
 if (isset($_SESSION['id'])) {
     $user = $select->SelectuserByuser($_SESSION['id']);
+    $idDepartamentoUsuario = $_SESSION['idDepartamento'] ?? null;
 } else {
     header('location: ../index.php');
-    exit;
 }
+
+// Obtener departamentos para el filtro
+$departamentos = $controladorActividad->obtenerDepartamentos();
+
+// Determinar departamento a filtrar (si no se seleccionó, usar el del usuario)
+$idDepartamentoFiltro = $_GET['idDepartamento'] ?? $idDepartamentoUsuario;
+
+// Obtener estadísticas
+$estadisticas = $controladorActividad->obtenerEstadisticasActividades($idDepartamentoFiltro);
 
 // Obtener actividades para el calendario
-$eventosCalendario = $controladorActividad->obtenerActividadesParaCalendario();
-
-// Obtener estadísticas y listado de actividades
-$actividades = $controladorActividad->obtenerActividades();
-
-if (!is_array($actividades)) {
-    die('Error: La función obtenerActividades() no devolvió un array.');
-}
-
-// Inicializar contadores
-$porIniciar = $enProceso = $retraso = $canceladas = $culminadas = $pendientes = 0;
-$totalActividades = count($actividades);
-$actividadesListado = [];
-
-foreach ($actividades as $actividad) {
-    // Verificar y asignar valores por defecto si las claves no existen
-    $nombre = $actividad['nombreActividad'] ?? 'Sin nombre';
-    $descripcion = $actividad['descripcionActividad'] ?? 'Sin descripción';
-    $fechaInicio = $actividad['fechaInicio'] ?? date('Y-m-d');
-    $fechaFin = $actividad['fechaCulminacion'] ?? date('Y-m-d');
-    $estado = isset($actividad['estadoActividad']) ? trim($actividad['estadoActividad']) : 'Desconocido';
-
-    // Para estadísticas
-    switch ($estado) {
-        case 'Por Iniciar':
-            $porIniciar++;
-            $color = '#FBBF24'; // Amarillo
-            $icono = '⏱️'; // Icono de reloj
-            break;
-        case 'Retraso':
-            $retraso++;
-            $color = '#60A5FA'; // Azul
-            $icono = '📅'; // Icono de calendario
-            break;
-        case 'En progreso':
-            $enProceso++;
-            $color = '#F97316'; // Naranja
-            $icono = '🚧'; // Icono de construcción
-            break;
-        case 'Cancelada':
-            $canceladas++;
-            $color = '#EF4444'; // Rojo
-            $icono = '❌'; // Icono de cancelación
-            break;
-        case 'Completada':
-            $culminadas++;
-            $color = '#10B981'; // Verde
-            $icono = '✅'; // Icono de completado
-            break;
-        default:
-            $color = '#94A3B8'; // Gris por defecto
-            $icono = '❓'; // Icono de desconocido
-            break;
-    }
-
-    // Para listado de actividades
-    $actividadesListado[] = [
-        'nombre' => $nombre,
-        'descripcion' => $descripcion,
-        'fechaInicio' => $fechaInicio,
-        'fechaFin' => $fechaFin,
-        'estado' => $estado,
-        'color' => $color,
-        'icono' => $icono
-    ];
-}
+$eventosCalendario = $controladorActividad->obtenerActividadesParaCalendario($idDepartamentoFiltro);
+$eventosJson = json_encode($eventosCalendario);
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control</title>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <title>Calendario de Actividades</title>
     <!-- FullCalendar CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
     <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="CSS/output.css">
-    <link rel="stylesheet" href="CSS/animaciones.css">
-    <!-- SweetAlert para mostrar detalles -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+    <style>
+        /* Estilos para colores según estado */
+        .bg-blue-100 { background-color: #DBEAFE; }
+        .text-blue-800 { color: #1E40AF; }
+        .bg-yellow-100 { background-color: #FEF3C7; }
+        .text-yellow-800 { color: #92400E; }
+        .bg-orange-100 { background-color: #FFEDD5; }
+        .text-orange-800 { color: #9A3412; }
+        .bg-red-100 { background-color: #FEE2E2; }
+        .text-red-800 { color: #B91C1C; }
+        .bg-green-100 { background-color: #D1FAE5; }
+        .text-green-800 { color: #065F46; }
+        .bg-indigo-100 { background-color: #E0E7FF; }
+        .text-indigo-800 { color: #3730A3; }
+
+        /* Estilos para los recuadros de estado */
+        .status-card {
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s;
+        }
+        .status-card:hover { transform: translateY(-2px); }
+
+        /* Estilos para el calendario */
+        #calendar {
+            width: 100%;
+            min-width: 320px;
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        
+        .fc .fc-daygrid-day-frame {
+            overflow-x: auto !important;
+            word-break: break-word;
+        }
+        
+        .fc-event {
+            cursor: pointer;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.25rem;
+            font-size: 0.85rem;
+            white-space: normal !important;
+            word-break: break-word;
+            max-width: 100%;
+            overflow-wrap: break-word;
+        }
+        
+        .fc-daygrid-event-dot {
+            display: none;
+        }
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 0.25rem;
+        }
+    </style>
 </head>
 
 <body class="bg-[#E8EEFF]">
-    <div class="flex h-screen" x-data="{ isCollapsed: false, activeTab: 'calendario' }">
+    <div class="flex h-screen">
         <!-- Sidebar -->
         <?php include 'modulos/sidebar.php'; ?>
+        
         <!-- Main content -->
         <main class="flex-1 p-6 overflow-y-auto">
-            <h1 class="text-2xl font-semibold mb-4">Panel de Actividades</h1>
-            <!-- Contenido de pestañas -->
-            <div>
-                <!-- Grid de estadísticas -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                    <!-- Recuadro Total -->
-                    <div class="status-card bg-indigo-100 text-indigo-800">
-                        <h2 class="text-lg font-semibold mb-2">Total Actividades</h2>
-                        <p class="text-2xl font-bold"><?= $totalActividades ?></p>
-                    </div>
-
-                    <!-- Recuadro Por Iniciar -->
-                    <div class="status-card bg-yellow-100 text-yellow-800">
-                        <h2 class="text-lg font-semibold mb-2">Por Iniciar</h2>
-                        <p class="text-2xl font-bold"><?= $porIniciar ?></p>
-                    </div>
-
-                    <!-- Recuadro En Proceso -->
-                    <div class="status-card bg-orange-100 text-orange-800">
-                        <h2 class="text-lg font-semibold mb-2">En Proceso</h2>
-                        <p class="text-2xl font-bold"><?= $enProceso ?></p>
-                    </div>
-
-                    <!-- Recuadro Pendientes -->
-                    <div class="status-card bg-blue-100 text-blue-800">
-                        <h2 class="text-lg font-semibold mb-2">Retrasadas</h2>
-                        <p class="text-2xl font-bold"><?= $retraso ?></p>
-                    </div>
-
-                    <!-- Recuadro Canceladas -->
-                    <div class="status-card bg-red-100 text-red-800">
-                        <h2 class="text-lg font-semibold mb-2">Canceladas</h2>
-                        <p class="text-2xl font-bold"><?= $canceladas ?></p>
-                    </div>
-
-                    <!-- Recuadro Culminadas -->
-                    <div class="status-card bg-green-100 text-green-800">
-                        <h2 class="text-lg font-semibold mb-2">Culminadas</h2>
-                        <p class="text-2xl font-bold"><?= $culminadas ?></p>
-                    </div>
+            <h1 class="text-2xl font-semibold mb-4">Calendario de Actividades</h1>
+            
+            <!-- Contadores -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <!-- Recuadro Total -->
+                <div class="status-card bg-indigo-100 text-indigo-800">
+                    <h2 class="text-lg font-semibold mb-2">Total Actividades</h2>
+                    <p class="text-2xl font-bold"><?= $estadisticas['total'] ?></p>
+                </div>
+                <!-- Por Iniciar -->
+                <div class="status-card" style="background-color:#FEF3C7; color:#92400E;">
+                    <h2 class="text-lg font-semibold mb-2">Por Iniciar</h2>
+                    <p class="text-2xl font-bold"><?= $estadisticas['por_iniciar'] ?></p>
+                </div>
+                <!-- Pendiente -->
+                <div class="status-card" style="background-color:#DBEAFE; color:#1E40AF;">
+                    <h2 class="text-lg font-semibold mb-2">Pendiente</h2>
+                    <p class="text-2xl font-bold"><?= $estadisticas['pendiente'] ?? 0 ?></p>
+                </div>
+                <!-- En Proceso -->
+                <div class="status-card" style="background-color:#F97316; color:#fff;">
+                    <h2 class="text-lg font-semibold mb-2">En Proceso</h2>
+                    <p class="text-2xl font-bold"><?= $estadisticas['en_progreso'] ?></p>
+                </div>
+                <!-- Canceladas -->
+                <div class="status-card" style="background-color:#EF4444; color:#fff;">
+                    <h2 class="text-lg font-semibold mb-2">Canceladas</h2>
+                    <p class="text-2xl font-bold"><?= $estadisticas['canceladas'] ?></p>
+                </div>
+                <!-- Culminadas -->
+                <div class="status-card" style="background-color:#10B981; color:#fff;">
+                    <h2 class="text-lg font-semibold mb-2">Completadas</h2>
+                    <p class="text-2xl font-bold"><?= $estadisticas['completadas'] ?></p>
                 </div>
             </div>
-            <!-- Pestañas -->
-            <div class="tabs">
-                <div class="tab" :class="{ 'active': activeTab === 'calendario' }" @click="activeTab = 'calendario'">
-                    <i class="fas fa-calendar-alt mr-2"></i> Calendario
+            
+            <!-- Leyenda del calendario -->
+            <div class="legend mb-4">
+                <div class="legend-item">
+                    <div class="legend-color bg-[#FBBF24]"></div>
+                    <span>Por Iniciar</span>
                 </div>
-                <div class="tab" :class="{ 'active': activeTab === 'listado' }" @click="activeTab = 'listado'">
-                    <i class="fas fa-list-ul mr-2"></i> Listado
+                <div class="legend-item">
+                    <div class="legend-color bg-[#60A5FA]"></div>
+                    <span>Pendiente</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color bg-[#F97316]"></div>
+                    <span>En Proceso</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color bg-[#EF4444]"></div>
+                    <span>Cancelada</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color bg-[#10B981]"></div>
+                    <span>Completada</span>
                 </div>
             </div>
-
-            <div class="tab-content" :class="{ 'active': activeTab === 'calendario' }">
-                <!-- Calendario -->
-                <div id="calendar" class="mb-6"></div>
-            </div>
-
-            <div class="tab-content" :class="{ 'active': activeTab === 'listado' }">
-                <!-- Listado de actividades con iconos -->
-                <h2 class="text-xl font-semibold mb-4">Listado de Actividades</h2>
-                <div class="actividades-container">
-                    <?php foreach ($actividadesListado as $actividad): ?>
-                        <div class="actividad-card" style="border-left-color: <?= $actividad['color'] ?>;">
-                            <div class="actividad-header">
-                                <div class="actividad-icono"><?= $actividad['icono'] ?></div>
-                                <h3 class="actividad-nombre"><?= htmlspecialchars($actividad['nombre']) ?></h3>
-                            </div>
-                            <span class="actividad-estado" style="background-color: <?= $actividad['color'] ?>20; color: <?= $actividad['color'] ?>;">
-                                <?= $actividad['estado'] ?>
-                            </span>
-                            <div class="actividad-fechas">
-                                <div><i class="far fa-calendar-alt mr-1"></i> Inicio: <?= date('d/m/Y', strtotime($actividad['fechaInicio'])) ?></div>
-                                <div><i class="far fa-calendar-check mr-1"></i> Fin: <?= date('d/m/Y', strtotime($actividad['fechaFin'])) ?></div>
-                            </div>
-                            <p class="actividad-descripcion"><?= htmlspecialchars($actividad['descripcion']) ?></p>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
+            
+            <!-- Calendario -->
+            <div class="w-full overflow-x-auto">
+                <div id="calendar"></div>
             </div>
         </main>
     </div>
@@ -190,9 +193,13 @@ foreach ($actividades as $actividad) {
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.min.js"></script>
-
+    <!-- SweetAlert para modales -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const eventos = <?php echo $eventosJson; ?>;
+            
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
@@ -202,40 +209,28 @@ foreach ($actividades as $actividad) {
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                events: <?= json_encode($eventosCalendario) ?>,
+                events: eventos,
                 eventClick: function(info) {
                     const event = info.event;
-                    const descripcion = event.extendedProps.description || 'Sin descripción';
-                    const estado = event.extendedProps.estado || 'Estado desconocido';
-                    const empleado = event.extendedProps.empleado || 'No asignado';
-                    const categoria = event.extendedProps.categoria || 'Sin categoría';
-
+                    
+                    // Modal sin "Ver Historial"
                     Swal.fire({
                         title: event.title,
                         html: `
                             <div class="text-left">
-                                <p><strong>Estado:</strong> ${estado}</p>
-                                <p><strong>Empleado:</strong> ${empleado}</p>
-                                <p><strong>Categoría:</strong> ${categoria}</p>
-                                <p><strong>Fecha Inicio:</strong> ${event.start ? event.start.toLocaleDateString() : 'No especificada'}</p>
+                                <p><strong>Estado:</strong> ${event.extendedProps.estado}</p>
+                                <p><strong>Empleado:</strong> ${event.extendedProps.empleado}</p>
+                                <p><strong>Categoría:</strong> ${event.extendedProps.categoria}</p>
+                                <p><strong>Fecha Inicio:</strong> ${event.start.toLocaleDateString()}</p>
                                 ${event.end ? `<p><strong>Fecha Fin:</strong> ${event.end.toLocaleDateString()}</p>` : ''}
-                                <p class="mt-2"><strong>Descripción:</strong></p>
-                                <p class="text-gray-700">${descripcion}</p>
+                                <p><strong>Descripción:</strong> ${event.extendedProps.description}</p>
                             </div>
                         `,
-                        confirmButtonText: 'Cerrar',
-                        width: '600px',
-                        background: '#ffffff',
-                        backdrop: `
-                            rgba(0,0,0,0.5)
-                            url("/images/nyan-cat.gif")
-                            left top
-                            no-repeat
-                        `
+                        confirmButtonText: 'Cerrar'
                     });
                 }
             });
-
+            
             calendar.render();
         });
     </script>
