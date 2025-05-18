@@ -1,4 +1,4 @@
-[file content begin]
+
 <?php
 session_start();
 require_once '../controladores/controladorActividad.php';
@@ -150,8 +150,7 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                     </div>
                     
                     <div>
-                        <label for="idDepartamento" class="block text-sm font-medium text-gray-700 mb-1">Departamento</label>
-                       
+                
                     </div>
                     
                     <div class="md:col-span-3 flex justify-end space-x-3">
