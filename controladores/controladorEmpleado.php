@@ -160,6 +160,10 @@ class controladorEmpleado {
             throw new Exception("Error al verificar la cédula: " . $e->getMessage());
         }
     }
-    
-    
+
+
+    public function obtenerEmpleadosPorDepartamento($idDepartamento) {
+        return $this->modelo->obtenerEmpleadosPorDepartamento($idDepartamento);
+    }
+
 }

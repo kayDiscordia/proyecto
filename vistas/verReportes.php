@@ -85,9 +85,9 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reportes del Empleado</title>
     <link rel="stylesheet" href="CSS/output.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="CSS/fontawesome.css">
+    <link rel="stylesheet" href="CSS/flatpicker.css">
+    <script defer src="JS/alpine.js"></script>
 </head>
 
 <body class="bg-[#E8EEFF]">
@@ -218,9 +218,9 @@ try {
     </div>
 
     <!-- Scripts para mejor manejo de fechas -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="JS/flatpicker.js"></script>
+    <script src="JS/jspdf.js"></script>
+    <script src="JS/jspdf-autotable.js"></script>
     <script>
         // Inicializar datepickers
         flatpickr("#fecha_inicio", {

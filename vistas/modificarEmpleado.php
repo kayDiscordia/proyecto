@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modificar Empleado</title>
     <link rel="stylesheet" href="CSS/output.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="CSS/output.css"></script>
 </head>
 <body class="bg-[#E8EEFF]">
     <div class="min-h-screen flex items-center justify-center p-4">

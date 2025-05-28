@@ -1,17 +1,15 @@
 <?php
 require_once '../login/conexion.php';
 require_once '../login/functionLogin.php';
-require_once '../login/claseSelect.php';
 require_once '../controladores/controladorEmpleado.php';
 
-$conexion = new Conexion();
-$selectEmpleado = new SelectEmpleado($conexion->conexion);
+$select = new Login();
 
 if (isset($_SESSION['id'])) {
-    $user = $selectEmpleado->SelectuserByuser($_SESSION['id']);
+    $user = $select->SelectuserByuser($_SESSION['id']);
+    $idDepartamentoUsuario = $_SESSION['idDepartamento'] ?? null;
 } else {
     header('location: ../index.php');
-    exit();
 }
 $controlador = new controladorEmpleado();
 
@@ -50,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Control</title>
     <link rel="stylesheet" href="CSS/output.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="JS/alpine.js"></script>
 </head>
 <body class="bg-[#E8EEFF]">
     <div class="flex h-screen" x-data="{ isCollapsed: false }">

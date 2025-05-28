@@ -13,7 +13,7 @@ require_once '../controladores/controladorActividad.php';
 require_once '../controladores/controladorEmpleado.php';
 
 $controladorEmpleado = new controladorEmpleado();
-$empleados = $controladorEmpleado->obtenerEmpleados();
+$empleados = $controladorEmpleado->obtenerEmpleadosPorDepartamento($_SESSION['idDepartamento']);
 $departamentos = $controladorEmpleado->obtenerDepartamentos();
 
 $controlador = new controladorActividad();
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Control</title>
     <link rel="stylesheet" href="CSS/output.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="JS/alpine.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Obtener la fecha actual en formato YYYY-MM-DD
@@ -152,6 +152,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <option value="<?php echo $empleado['idEmpleado']; ?>"
                                             <?php echo (!empty($formData['idEmpleado']) && $formData['idEmpleado'] == $empleado['idEmpleado'] ? 'selected' : ''); ?>>
                                             <?php echo htmlspecialchars($empleado['nombres'] . ' ' . $empleado['apellidos']); ?>
+                                            <?php if (!empty($empleado['nombreCargo'])): ?>
+                                                (<?php echo htmlspecialchars($empleado['nombreCargo']); ?>)
+                                            <?php endif; ?>
                                         </option>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
@@ -224,8 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             try {
-                const response = await fetch('../controladores/controladorActividad.php?action=limite&idEmpleado=' + empleadoId);
-                if (!response.ok) throw new Error('Error al verificar límite de actividades');
+const response = await fetch('../controladores/controladorActividad.php?action=obtenerLimiteActividades&idEmpleado=' + empleadoId);                if (!response.ok) throw new Error('Error al verificar límite de actividades');
                 const data = await response.json();
 
                 if (data.error) {

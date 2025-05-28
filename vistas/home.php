@@ -15,6 +15,7 @@ if (isset($_SESSION['id'])) {
 // Obtener departamentos para el filtro
 $departamentos = $controladorActividad->obtenerDepartamentos();
 
+
 // Determinar departamento a filtrar (si no se seleccionó, usar el del usuario)
 $idDepartamentoFiltro = $_GET['idDepartamento'] ?? $idDepartamentoUsuario;
 
@@ -34,24 +35,61 @@ $eventosJson = json_encode($eventosCalendario);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendario de Actividades</title>
     <!-- FullCalendar CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <link href='CSS/calendar.css' rel='stylesheet' />
+
+
     <!-- Font Awesome para iconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="CSS/fontawesome.css">
     <link rel="stylesheet" href="CSS/output.css">
     <style>
         /* Estilos para colores según estado */
-        .bg-blue-100 { background-color: #DBEAFE; }
-        .text-blue-800 { color: #1E40AF; }
-        .bg-yellow-100 { background-color: #FEF3C7; }
-        .text-yellow-800 { color: #92400E; }
-        .bg-orange-100 { background-color: #FFEDD5; }
-        .text-orange-800 { color: #9A3412; }
-        .bg-red-100 { background-color: #FEE2E2; }
-        .text-red-800 { color: #B91C1C; }
-        .bg-green-100 { background-color: #D1FAE5; }
-        .text-green-800 { color: #065F46; }
-        .bg-indigo-100 { background-color: #E0E7FF; }
-        .text-indigo-800 { color: #3730A3; }
+        .bg-blue-100 {
+            background-color: #DBEAFE;
+        }
+
+        .text-blue-800 {
+            color: #1E40AF;
+        }
+
+        .bg-yellow-100 {
+            background-color: #FEF3C7;
+        }
+
+        .text-yellow-800 {
+            color: #92400E;
+        }
+
+        .bg-orange-100 {
+            background-color: #FFEDD5;
+        }
+
+        .text-orange-800 {
+            color: #9A3412;
+        }
+
+        .bg-red-100 {
+            background-color: #FEE2E2;
+        }
+
+        .text-red-800 {
+            color: #B91C1C;
+        }
+
+        .bg-green-100 {
+            background-color: #D1FAE5;
+        }
+
+        .text-green-800 {
+            color: #065F46;
+        }
+
+        .bg-indigo-100 {
+            background-color: #E0E7FF;
+        }
+
+        .text-indigo-800 {
+            color: #3730A3;
+        }
 
         /* Estilos para los recuadros de estado */
         .status-card {
@@ -60,7 +98,10 @@ $eventosJson = json_encode($eventosCalendario);
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             transition: transform 0.2s;
         }
-        .status-card:hover { transform: translateY(-2px); }
+
+        .status-card:hover {
+            transform: translateY(-2px);
+        }
 
         /* Estilos para el calendario */
         #calendar {
@@ -74,12 +115,12 @@ $eventosJson = json_encode($eventosCalendario);
             padding: 1rem;
             overflow-x: auto;
         }
-        
+
         .fc .fc-daygrid-day-frame {
             overflow-x: auto !important;
             word-break: break-word;
         }
-        
+
         .fc-event {
             cursor: pointer;
             border-radius: 0.25rem;
@@ -90,28 +131,34 @@ $eventosJson = json_encode($eventosCalendario);
             max-width: 100%;
             overflow-wrap: break-word;
         }
-        
+
         .fc-daygrid-event-dot {
             display: none;
         }
-        
+
         .legend {
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
             margin-bottom: 1rem;
         }
-        
+
         .legend-item {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
-        
+
         .legend-color {
             width: 20px;
             height: 20px;
             border-radius: 0.25rem;
+
+
+        }
+
+        #calendar {
+            min-height: 600px;
         }
     </style>
 </head>
@@ -120,27 +167,27 @@ $eventosJson = json_encode($eventosCalendario);
     <div class="flex h-screen">
         <!-- Sidebar -->
         <?php include 'modulos/sidebar.php'; ?>
-        
+
         <!-- Main content -->
         <main class="flex-1 p-6 overflow-y-auto">
             <h1 class="text-2xl font-semibold mb-4">Calendario de Actividades</h1>
-            
+
             <!-- Contadores -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 <!-- Recuadro Total -->
-                <div class="status-card bg-indigo-100 text-indigo-800">
+                <div class="status-card bg-[#6D28D9] text-white">
                     <h2 class="text-lg font-semibold mb-2">Total Actividades</h2>
                     <p class="text-2xl font-bold"><?= $estadisticas['total'] ?></p>
                 </div>
                 <!-- Por Iniciar -->
-                <div class="status-card" style="background-color:#FEF3C7; color:#92400E;">
+                <div class="status-card" style="background-color:#FACC15; color:#fff;">
                     <h2 class="text-lg font-semibold mb-2">Por Iniciar</h2>
                     <p class="text-2xl font-bold"><?= $estadisticas['por_iniciar'] ?></p>
                 </div>
-                <!-- Pendiente -->
-                <div class="status-card" style="background-color:#DBEAFE; color:#1E40AF;">
-                    <h2 class="text-lg font-semibold mb-2">Pendiente</h2>
-                    <p class="text-2xl font-bold"><?= $estadisticas['pendiente'] ?? 0 ?></p>
+                <!-- Retraso -->
+                <div class="status-card" style="background-color:#1D4ED8; color:#fff;">
+                    <h2 class="text-lg font-semibold mb-2">Retraso</h2>
+                    <p class="text-2xl font-bold"><?= $estadisticas['retraso'] ?? 0 ?></p>
                 </div>
                 <!-- En Proceso -->
                 <div class="status-card" style="background-color:#F97316; color:#fff;">
@@ -158,31 +205,7 @@ $eventosJson = json_encode($eventosCalendario);
                     <p class="text-2xl font-bold"><?= $estadisticas['completadas'] ?></p>
                 </div>
             </div>
-            
-            <!-- Leyenda del calendario -->
-            <div class="legend mb-4">
-                <div class="legend-item">
-                    <div class="legend-color bg-[#FBBF24]"></div>
-                    <span>Por Iniciar</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color bg-[#60A5FA]"></div>
-                    <span>Pendiente</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color bg-[#F97316]"></div>
-                    <span>En Proceso</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color bg-[#EF4444]"></div>
-                    <span>Cancelada</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color bg-[#10B981]"></div>
-                    <span>Completada</span>
-                </div>
-            </div>
-            
+
             <!-- Calendario -->
             <div class="w-full overflow-x-auto">
                 <div id="calendar"></div>
@@ -191,12 +214,12 @@ $eventosJson = json_encode($eventosCalendario);
     </div>
 
     <!-- FullCalendar JS -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.min.js"></script>
-    <!-- SweetAlert para modales -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <script>
+    <script src='JS/calendar-main.js'></script>
+    <script src='JS/calendar-local.js'></script>
+     <!-- SweetAlert para modales -->
+    <script src="JS/sweetalert.js"></script>
+
+     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const eventos = <?php echo $eventosJson; ?>;
             
@@ -213,7 +236,7 @@ $eventosJson = json_encode($eventosCalendario);
                 eventClick: function(info) {
                     const event = info.event;
                     
-                    // Modal sin "Ver Historial"
+                    // Modal 
                     Swal.fire({
                         title: event.title,
                         html: `

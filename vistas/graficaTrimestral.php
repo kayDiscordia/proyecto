@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 require_once '../controladores/controladorActividad.php';
@@ -10,38 +9,56 @@ $fechaInicio = $_GET['fechaInicio'] ?? '';
 $fechaFin = $_GET['fechaFin'] ?? '';
 $idDepartamento = $_GET['idDepartamento'] ?? ($_SESSION['idDepartamento'] ?? null);
 
+// Obtener actividades y su historial para el PDF
+$actividades = $controlador->obtenerActividadesFiltradas(
+    'todos',
+    $fechaInicio,
+    $fechaFin,
+    'todas',
+    $idDepartamento
+);
+
+$historialActividades = [];
+foreach ($actividades as $actividad) {
+    $historialActividades[$actividad['idActividad']] = $controlador->obtenerHistorialActividad($actividad['idActividad']);
+}
 // Obtener datos para la gráfica
 $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fechaFin, $idDepartamento);
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte Trimestral de Actividades</title>
     <link rel="stylesheet" href="CSS/output.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="CSS/fontawesome.css">
+    <script src="JS/chart.js"></script>
+    <script src="JS/jspdf.js"></script>
+    <script src="JS/jspdf-autotable.js"></script>
+    <script defer src="JS/alpine.js"></script>
+    <script>
+        const actividades = <?= json_encode($actividades) ?>;
+        const historialActividades = <?= json_encode($historialActividades) ?>;
+    </script>
     <style>
         .grafica-container {
             background: white;
             padding: 1.5rem;
             border-radius: 0.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             margin-bottom: 1.5rem;
             text-align: center;
         }
-        
+
         .chart-container {
             position: relative;
             height: 500px;
             width: 100%;
         }
-        
+
         #graficaActividades {
             display: block;
             max-height: 500px;
@@ -55,21 +72,22 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
             border-spacing: 0 0.5rem;
             margin-top: 1rem;
         }
-        
-        .resumen-table th, .resumen-table td {
+
+        .resumen-table th,
+        .resumen-table td {
             padding: 0.75rem;
             text-align: left;
             border: 1px solid #e5e7eb;
             border-radius: 0.375rem;
             background: white;
         }
-        
+
         .resumen-table th {
             background-color: #f9fafb;
             font-weight: 600;
             color: #374151;
         }
-        
+
         .badge {
             display: inline-flex;
             align-items: center;
@@ -78,17 +96,17 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
             font-size: 0.875rem;
             font-weight: 500;
         }
-        
+
         .badge-completed {
             background-color: #dcfce7;
             color: #166534;
         }
-        
+
         .badge-cancelled {
             background-color: #fee2e2;
             color: #991b1b;
         }
-        
+
         .badge-progress {
             background-color: #fef9c3;
             color: #854d0e;
@@ -104,11 +122,11 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
             color: #b91c1c;
             border: 1px solid #f87171;
         }
-        
+
         .tab-container {
             margin-bottom: 1rem;
         }
-        
+
         .tab-button {
             padding: 0.5rem 1rem;
             background-color: #f3f4f6;
@@ -117,42 +135,43 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
             margin-right: 0.5rem;
             border-radius: 0.25rem;
         }
-        
+
         .tab-button.active {
             background-color: #3b82f6;
             color: white;
         }
     </style>
 </head>
+
 <body class="bg-[#E8EEFF]">
     <div class="flex h-screen">
         <!-- Sidebar -->
         <?php include 'modulos/sidebar.php' ?>
-        
+
         <!-- Main container -->
         <main class="flex-1 p-6 overflow-y-auto bg-e8eeff">
             <h2 class="text-2xl font-semibold mb-4">Reporte Trimestral de Actividades</h2>
-            
+
             <!-- Filtros -->
             <div class="bg-white p-4 rounded-lg shadow mb-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-3">Filtrar por Período</h3>
                 <form method="GET" action="" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label for="fechaInicio" class="block text-sm font-medium text-gray-700 mb-1">Fecha Inicio</label>
-                        <input type="date" id="fechaInicio" name="fechaInicio" value="<?= htmlspecialchars($fechaInicio) ?>" 
-                               class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        <input type="date" id="fechaInicio" name="fechaInicio" value="<?= htmlspecialchars($fechaInicio) ?>"
+                            class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    
+
                     <div>
                         <label for="fechaFin" class="block text-sm font-medium text-gray-700 mb-1">Fecha Fin</label>
-                        <input type="date" id="fechaFin" name="fechaFin" value="<?= htmlspecialchars($fechaFin) ?>" 
-                               class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        <input type="date" id="fechaFin" name="fechaFin" value="<?= htmlspecialchars($fechaFin) ?>"
+                            class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    
+
                     <div>
-                
+
                     </div>
-                    
+
                     <div class="md:col-span-3 flex justify-end space-x-3">
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center">
                             <i class="fas fa-filter mr-2"></i>Filtrar
@@ -178,7 +197,7 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-medium text-gray-900">Resumen de Actividades por Trimestre</h3>
                 </div>
-                
+
                 <?php if (isset($datosGrafica['error'])): ?>
                     <div class="text-center py-8">
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -242,13 +261,13 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                     </div>
                 <?php endif; ?>
             </div>
-            
+
             <!-- Gráfica -->
             <div class="grafica-container">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-medium text-gray-900">Estadísticas de Actividades por Trimestre</h3>
                 </div>
-                
+
                 <div class="chart-container">
                     <canvas id="graficaActividades"></canvas>
                 </div>
@@ -263,13 +282,13 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                 const now = new Date();
                 const currentMonth = now.getMonth();
                 const currentQuarter = Math.floor(currentMonth / 3);
-                
+
                 const firstMonth = currentQuarter * 3;
                 const lastMonth = firstMonth + 2;
-                
+
                 const firstDay = new Date(now.getFullYear(), firstMonth, 1);
                 const lastDay = new Date(now.getFullYear(), lastMonth + 1, 0);
-                
+
                 document.getElementById('fechaInicio').valueAsDate = firstDay;
                 document.getElementById('fechaFin').valueAsDate = lastDay;
                 document.querySelector('form').submit();
@@ -280,7 +299,7 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                 const now = new Date();
                 const firstDay = new Date(now.getFullYear(), 0, 1);
                 const lastDay = new Date(now.getFullYear(), 11, 31);
-                
+
                 document.getElementById('fechaInicio').valueAsDate = firstDay;
                 document.getElementById('fechaFin').valueAsDate = lastDay;
                 document.querySelector('form').submit();
@@ -290,21 +309,22 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
             document.getElementById('btnLimpiarFiltro').addEventListener('click', function() {
                 document.getElementById('fechaInicio').value = '';
                 document.getElementById('fechaFin').value = '';
-                document.getElementById('idDepartamento').value = '';
+                const dep = document.getElementById('idDepartamento');
+                if (dep) dep.value = '';
                 document.querySelector('form').submit();
             });
 
             // Configurar gráfica con el nuevo estilo
             const ctx = document.getElementById('graficaActividades').getContext('2d');
             const datosGrafica = <?= json_encode(isset($datosGrafica['error']) ? [] : $datosGrafica) ?>;
-            
+
             let chart; // Variable para almacenar la instancia del gráfico
-            
+
             function renderChart() {
                 if (chart) {
                     chart.destroy();
                 }
-                
+
                 if (datosGrafica.length === 0) {
                     ctx.font = '16px Arial';
                     ctx.fillStyle = '#6B7280';
@@ -312,10 +332,9 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                     ctx.fillText('No hay datos para mostrar', ctx.canvas.width / 2, ctx.canvas.height / 2);
                     return;
                 }
-                
+
                 const labels = datosGrafica.map(item => item.periodo);
-                const datasets = [
-                    {
+                const datasets = [{
                         label: 'Completadas',
                         data: datosGrafica.map(item => item.Completada || 0),
                         backgroundColor: '#10B981',
@@ -351,7 +370,7 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                         borderWidth: 1
                     }
                 ];
-                
+
                 chart = new Chart(ctx, {
                     type: 'bar',
                     data: {
@@ -417,13 +436,32 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                     }
                 });
             }
-            
+
             // Renderizar gráfica inicial
             renderChart();
 
+            // Validación automática de fechas: fechaFin no puede ser menor a fechaInicio
+            const fechaInicioInput = document.getElementById('fechaInicio');
+            const fechaFinInput = document.getElementById('fechaFin');
+
+            fechaInicioInput.addEventListener('change', function() {
+                fechaFinInput.min = fechaInicioInput.value;
+                // Si la fecha fin actual es menor, la borra
+                if (fechaFinInput.value && fechaFinInput.value < fechaInicioInput.value) {
+                    fechaFinInput.value = '';
+                }
+            });
+
+            // Si ya hay fecha de inicio al cargar, aplica el min
+            if (fechaInicioInput.value) {
+                fechaFinInput.min = fechaInicioInput.value;
+            }
+
             // Configurar botón para exportar el PDF
             document.getElementById('exportarPDF').addEventListener('click', function() {
-                const { jsPDF } = window.jspdf;
+                const {
+                    jsPDF
+                } = window.jspdf;
                 const pdf = new jsPDF();
 
                 let fechaInicio = document.getElementById('fechaInicio').value;
@@ -436,13 +474,13 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                     const now = new Date();
                     const currentMonth = now.getMonth();
                     const currentQuarter = Math.floor(currentMonth / 3);
-                    
+
                     const firstMonth = currentQuarter * 3;
                     const lastMonth = firstMonth + 2;
-                    
+
                     const firstDay = new Date(now.getFullYear(), firstMonth, 1);
                     const lastDay = new Date(now.getFullYear(), lastMonth + 1, 0);
-                    
+
                     const pad = n => n < 10 ? '0' + n : n;
                     fechaInicio = `${firstDay.getFullYear()}-${pad(firstDay.getMonth() + 1)}-${pad(firstDay.getDate())}`;
                     fechaFin = `${lastDay.getFullYear()}-${pad(lastDay.getMonth() + 1)}-${pad(lastDay.getDate())}`;
@@ -468,26 +506,107 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                     head: [resumenRows[0]],
                     body: resumenRows.slice(1),
                     styles: {
-                        halign: 'center',
+                        halign: 'center'
                     },
                     columnStyles: {
-                        1: { fillColor: [220, 252, 231] }, // Verde para completadas
-                        2: { fillColor: [254, 226, 226] }, // Rojo para canceladas
-                        3: { fillColor: [254, 249, 195] }, // Amarillo para en progreso
-                        4: { fillColor: [219, 234, 254] }, // Azul para por iniciar
-                        5: { fillColor: [254, 226, 226] }, // Rojo claro para en retraso
+                        1: {
+                            fillColor: [220, 252, 231]
+                        }, // Verde para completadas
+                        2: {
+                            fillColor: [254, 226, 226]
+                        }, // Rojo para canceladas
+                        3: {
+                            fillColor: [254, 249, 195]
+                        }, // Amarillo para en progreso
+                        4: {
+                            fillColor: [219, 234, 254]
+                        }, // Azul para por iniciar
+                        5: {
+                            fillColor: [254, 226, 226]
+                        }, // Rojo claro para en retraso
                     },
                 });
 
-                // Agregar gráfica al PDF
-                const finalY = pdf.lastAutoTable.finalY + 10;
+                // Tabla de actividades
+                let y = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 10 : 70;
+                if (actividades.length > 0) {
+                    pdf.text('Detalle de Actividades', 10, y);
+                    y += 5;
+                    pdf.autoTable({
+                        startY: y,
+                        head: [
+                            ["#", "Categoría", "Descripción", "Empleado", "Fecha Inicio", "Fecha Fin", "Estado"]
+                        ],
+                        body: actividades.map((a, i) => [
+                            i + 1,
+                            a.categoriaActividad,
+                            a.descripcionActividad,
+                            a.nombreEmpleado,
+                            a.fechaInicio,
+                            a.fechaCulminacion,
+                            a.estadoActividad
+                        ]),
+                        styles: {
+                            fontSize: 9
+                        },
+                        headStyles: {
+                            fillColor: [59, 130, 246]
+                        }
+                    });
+                    y = pdf.lastAutoTable.finalY + 10;
+                }
+
+                // Gráfica en nueva página
                 if (chart) {
+                    pdf.addPage();
+                    pdf.text('Gráfica de Actividades', 10, 10);
                     const chartImage = chart.canvas.toDataURL('image/png');
                     const pageWidth = pdf.internal.pageSize.getWidth();
-                    const imgWidth = 150;
+                    const margin = 10;
+                    const imgWidth = pageWidth - margin * 2;
                     const imgHeight = (chart.canvas.height / chart.canvas.width) * imgWidth;
-                    const centerX = (pageWidth - imgWidth) / 2;
-                    pdf.addImage(chartImage, 'PNG', centerX, finalY, imgWidth, imgHeight);
+                    pdf.addImage(chartImage, 'PNG', margin, 20, imgWidth, imgHeight);
+                }
+
+                // Historial de actividades
+                if (Object.keys(historialActividades).length > 0) {
+                    pdf.addPage();
+                    pdf.text('Historial de Actividades', 10, 10);
+                    let yHist = 20;
+                    actividades.forEach((a, i) => {
+                        const historial = historialActividades[a.idActividad] || [];
+                        pdf.setFontSize(11);
+                        pdf.text(`${i + 1}. ${a.descripcionActividad} (${a.nombreEmpleado})`, 10, yHist);
+                        yHist += 6;
+                        if (historial.length > 0) {
+                            pdf.autoTable({
+                                startY: yHist,
+                                head: [
+                                    ["Fecha", "Evento", "Detalles"]
+                                ],
+                                body: historial.map(h => [
+                                    h.fecha,
+                                    h.evento,
+                                    h.detalles
+                                ]),
+                                styles: {
+                                    fontSize: 8
+                                },
+                                headStyles: {
+                                    fillColor: [16, 185, 129]
+                                }
+                            });
+                            yHist = pdf.lastAutoTable.finalY + 8;
+                        } else {
+                            pdf.setFontSize(9);
+                            pdf.text('Sin historial.', 12, yHist);
+                            yHist += 8;
+                        }
+                        if (yHist > 260) {
+                            pdf.addPage();
+                            yHist = 10;
+                        }
+                    });
                 }
 
                 pdf.save('reporte_actividades_trimestral.pdf');
@@ -495,4 +614,5 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
         });
     </script>
 </body>
+
 </html>
