@@ -51,9 +51,6 @@ class modeloActividad
         } catch (Exception $e) {
             throw new Exception("Error al insertar la actividad: " . $e->getMessage());
         } finally {
-            if (isset($stmt)) {
-                $stmt->close();
-            }
         }
     }
 
@@ -134,9 +131,6 @@ class modeloActividad
         } catch (Exception $e) {
             throw new Exception("Error al editar la actividad: " . $e->getMessage());
         } finally {
-            if (isset($stmt)) {
-                $stmt->close();
-            }
         }
     }
 
@@ -223,7 +217,6 @@ class modeloActividad
         } catch (Exception $e) {
             throw new Exception("Error al cancelar la actividad: " . $e->getMessage());
         } finally {
-            if (isset($stmt)) $stmt->close();
         }
     }
 
@@ -269,7 +262,6 @@ class modeloActividad
         } catch (Exception $e) {
             throw new Exception("Error al culminar la actividad: " . $e->getMessage());
         } finally {
-            if (isset($stmt)) $stmt->close();
         }
     }
 
@@ -314,9 +306,6 @@ class modeloActividad
         } catch (Exception $e) {
             throw new Exception("Error al obtener los detalles de la actividad: " . $e->getMessage());
         } finally {
-            if (isset($stmt)) {
-                $stmt->close();
-            }
         }
     }
 
@@ -363,27 +352,49 @@ class modeloActividad
     public function obtenerEstadisticasSemanalesMensuales($fechaInicio, $fechaFin, $idDepartamento = null)
     {
         try {
-            if (!strtotime($fechaInicio)) { // <-- Corrige el paréntesis aquí
-                $fechaInicio = date('Y-m-01');
-            }
-            if (!strtotime($fechaFin)) {
-                $fechaFin = date('Y-m-t');
-            }
-
-            // Determinar si el rango de fechas es menor a 3 meses (mostrar por semana) o mayor (mostrar por mes)
-            $diff = (strtotime($fechaFin) - strtotime($fechaInicio)) / (60 * 60 * 24);
-            $agruparPor = ($diff <= 90) ? 'SEMANA' : 'MES'; // Si el rango es <= 90 días, agrupar por semana
+            // Definir si se agrupa por semana o por mes
+            $dias = (strtotime($fechaFin) - strtotime($fechaInicio)) / (60 * 60 * 24);
+            $agruparPor = ($dias <= 31) ? 'SEMANA' : 'MES';
 
             $query = "
                 SELECT 
                     es.nombreEstado AS estado,
                     COUNT(a.idActividad) AS cantidad,
                     " . ($agruparPor === 'SEMANA' ?
-                "CONCAT('Semana ', WEEK(a.fechaInicio, 1), ' ', YEAR(a.fechaInicio)) AS periodo" :
-                "CONCAT(MONTHNAME(a.fechaInicio), ' ', YEAR(a.fechaInicio)) AS periodo") . ",
+                    "CONCAT('Semana ', 
+                           FLOOR((DAYOFMONTH(a.fechaInicio) - 1) / 7 + 1),
+                           ' del mes de ', 
+                           CASE MONTH(a.fechaInicio)
+                               WHEN 1 THEN 'Enero'
+                               WHEN 2 THEN 'Febrero'
+                               WHEN 3 THEN 'Marzo'
+                               WHEN 4 THEN 'Abril'
+                               WHEN 5 THEN 'Mayo'
+                               WHEN 6 THEN 'Junio'
+                               WHEN 7 THEN 'Julio'
+                               WHEN 8 THEN 'Agosto'
+                               WHEN 9 THEN 'Septiembre'
+                               WHEN 10 THEN 'Octubre'
+                               WHEN 11 THEN 'Noviembre'
+                               WHEN 12 THEN 'Diciembre'
+                           END) AS periodo" :
+                    "CONCAT(CASE MONTH(a.fechaInicio)
+                               WHEN 1 THEN 'Enero'
+                               WHEN 2 THEN 'Febrero'
+                               WHEN 3 THEN 'Marzo'
+                               WHEN 4 THEN 'Abril'
+                               WHEN 5 THEN 'Mayo'
+                               WHEN 6 THEN 'Junio'
+                               WHEN 7 THEN 'Julio'
+                               WHEN 8 THEN 'Agosto'
+                               WHEN 9 THEN 'Septiembre'
+                               WHEN 10 THEN 'Octubre'
+                               WHEN 11 THEN 'Noviembre'
+                               WHEN 12 THEN 'Diciembre'
+                           END, ' ', YEAR(a.fechaInicio)) AS periodo") . ",
                     " . ($agruparPor === 'SEMANA' ?
-                "WEEK(a.fechaInicio, 1) AS orden" :
-                "YEAR(a.fechaInicio) * 100 + MONTH(a.fechaInicio) AS orden") . "
+                    "YEAR(a.fechaInicio) * 100 + MONTH(a.fechaInicio) * 10 + FLOOR((DAYOFMONTH(a.fechaInicio) - 1) / 7 + 1) AS orden" :
+                    "YEAR(a.fechaInicio) * 100 + MONTH(a.fechaInicio) AS orden") . "
                 FROM 
                     actividades a
                 JOIN 
@@ -407,7 +418,7 @@ class modeloActividad
                 GROUP BY 
                     es.nombreEstado, periodo, orden
                 ORDER BY 
-                    orden, es.nombreEstado
+                    orden ASC, es.nombreEstado
             ";
 
             $stmt = $this->db->getConnection()->prepare($query);
@@ -566,9 +577,6 @@ class modeloActividad
         } catch (Exception $e) {
             throw new Exception("Error al contar actividades del empleado: " . $e->getMessage());
         } finally {
-            if (isset($stmt)) {
-                $stmt->close();
-            }
         }
     }
 
