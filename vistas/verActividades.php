@@ -571,6 +571,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         function cerrarModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+    const editarFechaInicio = document.getElementById('editarFechaInicio');
+    const editarFechaCulminacion = document.getElementById('editarFechaCulminacion');
+
+    if (editarFechaInicio && editarFechaCulminacion) {
+        // Establecer el mínimo de fecha de inicio como hoy
+        const today = new Date().toISOString().split('T')[0];
+        editarFechaInicio.setAttribute('min', today);
+
+        // Cuando cambia la fecha de inicio, actualizar el mínimo de culminación
+        editarFechaInicio.addEventListener('change', function() {
+            editarFechaCulminacion.min = this.value;
+            if (editarFechaCulminacion.value < this.value) {
+                editarFechaCulminacion.value = this.value;
+            }
+        });
+
+        // Validar que la fecha de culminación no sea menor a la de inicio
+        editarFechaCulminacion.addEventListener('change', function() {
+            if (this.value < editarFechaInicio.value) {
+                alert('La fecha de culminación no puede ser menor a la fecha de inicio.');
+                this.value = editarFechaInicio.value;
+            }
+        });
+    }
+});
     </script>
 </body>
 
