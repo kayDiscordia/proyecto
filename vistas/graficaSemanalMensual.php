@@ -564,15 +564,24 @@ foreach ($actividades as $actividad) {
             const fechaInicioInput = document.getElementById('fechaInicio');
             const fechaFinInput = document.getElementById('fechaFin');
 
-            fechaInicioInput.addEventListener('change', function() {
-                fechaFinInput.min = fechaInicioInput.value;
-                if (fechaFinInput.value && fechaFinInput.value < fechaInicioInput.value) {
-                    fechaFinInput.value = '';
-                }
-            });
+            if (fechaInicioInput && fechaFinInput) {
+                fechaInicioInput.addEventListener('change', function() {
+                    if (fechaInicioInput.value) {
+                        fechaFinInput.min = fechaInicioInput.value;
+                        if (fechaFinInput.value && fechaFinInput.value < fechaInicioInput.value) {
+                            fechaFinInput.value = '';
+                        }
+                    } else {
+                        fechaFinInput.min = '';
+                    }
+                });
 
-            if (fechaInicioInput.value) {
-                fechaFinInput.min = fechaInicioInput.value;
+                // Al cargar la página, si hay fecha de inicio, establecer el mínimo en fecha fin
+                if (fechaInicioInput.value) {
+                    fechaFinInput.min = fechaInicioInput.value;
+                } else {
+                    fechaFinInput.min = '';
+                }
             }
         });
     </script>
