@@ -1,0 +1,85 @@
+body{
+    background: #e8eeff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+}
+
+*{
+    box-sizing: border-box;
+}
+
+form{
+    width: 600px;
+    border: 2px solid #89c0e9;
+    padding: 6rem;
+    background-color: #89c0e9;
+    border: none;
+    border-radius: 50px;
+    color: black;
+}
+h1{
+    display: block;
+    border: 2px solid #89c0e9;
+    width: 95%;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 10px;
+}
+label{
+    color: black;
+    font-size: 18px;
+    padding: 10px;
+    font-weight: 300;
+}
+input{
+    display: block;
+    border: 2px solid black;
+    width: 95%;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 100px;
+}
+button{
+    align-items: center;
+    background-color: rgb(21, 21, 92);
+    padding: .5rem;
+    color: rgb(206, 194, 233);
+    border: none;
+    width: 40%;
+    border-radius: 100px;
+    margin-right: 10px;
+
+}
+button:hover{
+    background-color: rgb(206, 194, 233);
+    color: rgb(21, 21, 92);
+}
+a{
+    float: left;
+    margin-left: 10px;
+    text-decoration: none;
+}
+a:hover{
+    color: white;
+}
+
+
+
+marquee{
+    display: block;
+    float: left;
+    justify-self: left;
+    border: 10px;
+    padding: 10px;
+}
+.modificar-link {
+    color: #3B82F6; /* Color azul */
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+.modificar-link:hover {
+    color: #1D4ED8; /* Color azul más oscuro al pasar el mouse */
+}
