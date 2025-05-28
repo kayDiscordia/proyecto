@@ -1,17 +1,20 @@
-<<?php
+<?php
 require_once '../modelos/modeloActividad.php';
 
-$idActividad = $_POST['idActividad'];
-$descripcionCulminacion = $_POST['descripcionCulminacion'];
+$idActividad = $_POST['idActividad'] ?? $_GET['idActividad'] ?? null;
+$mensaje = null;
 
-$modeloActividad = new modeloActividad();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['descripcionCulminacion'])) {
+    $descripcionCulminacion = $_POST['descripcionCulminacion'];
+    $modeloActividad = new modeloActividad();
 
-try {
-    $modeloActividad->culminarActividad($idActividad, $descripcionCulminacion);
-    header('Location: verActividades.php?mensaje=Culminada');
-    exit();
-} catch (Exception $e) {
-    die("Error al culminar la actividad: " . $e->getMessage());
+    try {
+        $modeloActividad->culminarActividad($idActividad, $descripcionCulminacion);
+        header('Location: verActividades.php?mensaje=Culminada');
+        exit();
+    } catch (Exception $e) {
+        $mensaje = "Error al culminar la actividad: " . $e->getMessage();
+    }
 }
 ?>
 
@@ -27,7 +30,10 @@ try {
     <div class="flex items-center justify-center min-h-screen">
         <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
             <h2 class="text-2xl font-semibold mb-6">Culminar Actividad</h2>
-            <form action="../modelos/culminarActividad.php" method="POST">
+            <?php if ($mensaje): ?>
+                <div class="mb-4 text-red-600"><?= htmlspecialchars($mensaje) ?></div>
+            <?php endif; ?>
+            <form action="" method="POST">
                 <input type="hidden" name="idActividad" value="<?= htmlspecialchars($idActividad) ?>">
                 <div class="mb-4">
                     <label for="descripcionCulminacion" class="block text-sm font-medium text-gray-700">Descripción de Culminación</label>

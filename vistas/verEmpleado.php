@@ -17,6 +17,19 @@ try {
 } catch (Exception $e) {
     die("Error al obtener empleados: " . $e->getMessage());
 }
+
+$nombreDepartamentoUsuario = null;
+foreach ($listaEmpleados as $empleadoTmp) {
+    if (isset($empleadoTmp['idEmpleado']) && $empleadoTmp['idEmpleado'] == $user['idEmpleado']) {
+        $nombreDepartamentoUsuario = $empleadoTmp['departamento_nombre'];
+        break;
+    }
+}
+if ($nombreDepartamentoUsuario) {
+    $listaEmpleados = array_filter($listaEmpleados, function($empleado) use ($nombreDepartamentoUsuario) {
+        return isset($empleado['departamento_nombre']) && $empleado['departamento_nombre'] == $nombreDepartamentoUsuario;
+    });
+}
 ?>
 
 <!DOCTYPE html>
@@ -26,7 +39,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Control</title>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="JS/alpine.js"></script>
     <link rel="stylesheet" href="css/output.css">
 </head>
 

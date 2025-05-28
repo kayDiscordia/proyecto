@@ -7,7 +7,7 @@ require_once '../login/functionLogin.php';
 // Verificar sesión
 $select = new Login();
 if (!isset($_SESSION['id'])) {
-    header('Location: index.php');
+    header(header: 'Location: index.php');
     exit();
 }
 
@@ -85,9 +85,9 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reportes del Empleado</title>
     <link rel="stylesheet" href="CSS/output.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="CSS/fontawesome.css">
+    <link rel="stylesheet" href="CSS/flatpicker.css">
+    <script defer src="JS/alpine.js"></script>
 </head>
 
 <body class="bg-[#E8EEFF]">
@@ -112,16 +112,19 @@ try {
                 <form method="GET" action="" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <input type="hidden" name="idEmpleado" value="<?= $idEmpleado ?>">
 
-                    <!-- Filtro por estado -->
-                    <div>
-                        <label for="estado" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                        <select id="estado" name="estado" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                            <option value="todos" <?= $filtroEstado === 'todos' ? 'selected' : '' ?>>Todos los estados</option>
-                            <option value="Completada" <?= $filtroEstado === 'Completada' ? 'selected' : '' ?>>Completadas</option>
-                            <option value="En progreso" <?= $filtroEstado === 'En progreso' ? 'selected' : '' ?>>En progreso</option>
-                            <option value="Cancelada" <?= $filtroEstado === 'Cancelada' ? 'selected' : '' ?>>Canceladas</option>
-                        </select>
-                    </div>
+                   
+                   <!-- Filtro por estado -->
+<div>
+    <label for="estado" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+    <select id="estado" name="estado" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+        <option value="todos" <?= $filtroEstado === 'todos' ? 'selected' : '' ?>>Todos los estados</option>
+        <option value="Completada" <?= $filtroEstado === 'Completada' ? 'selected' : '' ?>>Completadas</option>
+        <option value="En progreso" <?= $filtroEstado === 'En progreso' ? 'selected' : '' ?>>En progreso</option>
+        <option value="Por iniciar" <?= $filtroEstado === 'Por iniciar' ? 'selected' : '' ?>>Por iniciar</option>
+        <option value="Retraso" <?= $filtroEstado === 'Retraso' ? 'selected' : '' ?>>Retraso</option>
+        <option value="Cancelada" <?= $filtroEstado === 'Cancelada' ? 'selected' : '' ?>>Canceladas</option>
+    </select>
+</div>
 
                     <!-- Filtro por rango de fechas -->
                     <div>
@@ -215,9 +218,9 @@ try {
     </div>
 
     <!-- Scripts para mejor manejo de fechas -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="JS/flatpicker.js"></script>
+    <script src="JS/jspdf.js"></script>
+    <script src="JS/jspdf-autotable.js"></script>
     <script>
         // Inicializar datepickers
         flatpickr("#fecha_inicio", {

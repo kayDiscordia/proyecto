@@ -13,23 +13,7 @@ class controladorActividad
     /**
      * Obtiene datos para la gráfica trimestral.
      */
-    public function obtenerDatosGraficaTrimestral($fechaInicio, $fechaFin)
-    {
-        try {
-            // Validar fechas
-            if (empty($fechaInicio) || empty($fechaFin)) {
-                // Si no se proporcionan fechas, usar el trimestre actual
-                $fechaInicio = date('Y-m-01', strtotime('-2 months'));
-                $fechaFin = date('Y-m-t');
-            }
-
-            return $this->modelo->obtenerEstadisticasTrimestrales($fechaInicio, $fechaFin);
-        } catch (Exception $e) {
-            error_log("Error al   datos para gráfica trimestral: " . $e->getMessage());
-            return ['error' => $e->getMessage()];
-        }
-    }
-
+  
 
     public function obtenerDetallesActividad($idActividad)
     {
@@ -40,48 +24,19 @@ class controladorActividad
         }
     }
 
-    public function obtenerActividadesParaCalendario()
-    {
+    public function obtenerDatosGraficaSemanalMensual($fechaInicio, $fechaFin, $idDepartamento = null) {
         try {
-            $actividades = $this->modelo->obtenerActividadesParaCalendario();
-
-            // Formatear para FullCalendar
-            $eventos = [];
-            foreach ($actividades as $actividad) {
-                $evento = [
-                    'id' => $actividad['idActividad'],
-                    'title' => $actividad['title'],
-                    'start' => $actividad['start'],
-                    'end' => $actividad['end'],
-                    'extendedProps' => [
-                        'empleado' => $actividad['empleado'],
-                        'categoria' => $actividad['categoria'],
-                        'description' => $actividad['description'],
-                        'estado' => $actividad['estado']
-                    ]
-                ];
-
-                // Asignar clase CSS según estado
-                switch ($actividad['estado']) {
-                    case 'Completada':
-                        $evento['className'] = 'event-completada';
-                        $evento['color'] = '#10B981';
-                        break;
-                    case 'Cancelada':
-                        $evento['className'] = 'event-cancelada';
-                        $evento['color'] = '#EF4444';
-                        break;
-                    default: // En progreso
-                        $evento['className'] = 'event-en-progreso';
-                        $evento['color'] = '#F59E0B';
-                }
-
-                $eventos[] = $evento;
+            // Validar fechas
+            if (empty($fechaInicio)) { // <-- Paréntesis corregido aquí
+                $fechaInicio = date('Y-m-01', strtotime('-1 month'));
             }
-
-            return $eventos;
+            if (empty($fechaFin)) {
+                $fechaFin = date('Y-m-t');
+            }
+            
+            return $this->modelo->obtenerEstadisticasSemanalesMensuales($fechaInicio, $fechaFin, $idDepartamento);
         } catch (Exception $e) {
-            error_log("Error al obtener actividades para calendario: " . $e->getMessage());
+            error_log("Error al obtener datos para gráfica semanal/mensual: " . $e->getMessage());
             return ['error' => $e->getMessage()];
         }
     }
@@ -216,6 +171,23 @@ class controladorActividad
         }
     }
 
+    public function obtenerDatosGraficaTrimestral($fechaInicio, $fechaFin, $idDepartamento = null) {
+        try {
+            // Validar fechas
+            if (empty($fechaInicio)) {
+                $fechaInicio = date('Y-m-01', strtotime('-3 months'));
+            }
+            if (empty($fechaFin)) {
+                $fechaFin = date('Y-m-t');
+            }
+            
+            return $this->modelo->obtenerEstadisticasTrimestrales($fechaInicio, $fechaFin, $idDepartamento);
+        } catch (Exception $e) {
+            error_log("Error al obtener datos para gráfica trimestral: " . $e->getMessage());
+            return ['error' => $e->getMessage()];
+        }
+    }
+
     public function actualizarEstadosActividades()
     {
         try {
@@ -248,38 +220,25 @@ class controladorActividad
     }
 
     // Y modifica el método manejarSolicitudCategorias para manejar también solicitudes de límite
-    public function manejarSolicitudesAjax()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            header('Content-Type: application/json');
-
-            try {
-                if (isset($_GET['idEmpleado'])) {
-                    $idEmpleado = (int)$_GET['idEmpleado'];
-                    $limite = $this->modelo->obtenerLimiteActividadesPorEmpleado($idEmpleado);
-                    $actividadesActuales = $this->modelo->contarActividadesActivasPorEmpleado($idEmpleado);
-
-                    echo json_encode([
-                        'limite' => $limite,
-                        'actividadesActuales' => $actividadesActuales,
-                        'disponibles' => $limite - $actividadesActuales
-                    ]);
-                    exit();
-                }
-            } catch (Exception $e) {
-                echo json_encode(['error' => $e->getMessage()]);
-                exit();
-            }
-        }
-    }
     public function obtenerActividadesFiltradas($estado = 'todos', $fechaInicio = '', $fechaFin = '', $categoria = 'todas')
     {
         try {
             // Actualizar estados primero
             $this->actualizarEstadosActividades();
-
+    
+            // Obtener el ID del departamento del usuario de la sesión
+            $idDepartamento = $_SESSION['idDepartamento'] ?? null;
+            
             error_log("Parámetros recibidos para filtros: Estado: $estado, Fecha Inicio: $fechaInicio, Fecha Fin: $fechaFin, Categoría: $categoria");
-            $actividades = $this->modelo->obtenerActividadesFiltradas($estado, $fechaInicio, $fechaFin, $categoria);
+            
+            $actividades = $this->modelo->obtenerActividadesFiltradas(
+                $estado, 
+                $fechaInicio, 
+                $fechaFin, 
+                $categoria,
+                $idDepartamento
+            );
+            
             error_log("Actividades obtenidas del modelo: " . print_r($actividades, true));
             return $actividades;
         } catch (Exception $e) {
@@ -287,7 +246,6 @@ class controladorActividad
             return ['error' => $e->getMessage()];
         }
     }
-
     /**
      * Obtiene todas las categorías para el filtro o formulario
      */
@@ -308,6 +266,172 @@ class controladorActividad
     {
         error_log("Error en controladorActividad: " . $mensaje);
     }
+
+    public function obtenerDepartamentos()
+{
+    try {
+        return $this->modelo->obtenerDepartamentos();
+    } catch (Exception $e) {
+        error_log("Error al obtener departamentos: " . $e->getMessage());
+        return [];
+    }
+}
+
+public function obtenerEstadisticasActividades($idDepartamento = null)
+{
+    try {
+        // Actualizar estados primero
+        $this->actualizarEstadosActividades();
+        
+        $estadisticas = $this->modelo->obtenerEstadisticasActividades($idDepartamento);
+        
+        return [
+            'total' => $estadisticas['total'] ?? 0,
+            'completadas' => $estadisticas['Completada'] ?? 0,
+            'en_progreso' => $estadisticas['En progreso'] ?? 0,
+            'por_iniciar' => $estadisticas['Por Iniciar'] ?? 0,
+            'retraso' => $estadisticas['Retraso'] ?? 0,
+            'canceladas' => $estadisticas['Cancelada'] ?? 0
+        ];
+    } catch (Exception $e) {
+        error_log("Error al obtener estadísticas: " . $e->getMessage());
+        return [
+            'total' => 0,
+            'completadas' => 0,
+            'en_progreso' => 0,
+            'por_iniciar' => 0,
+            'retraso' => 0,
+            'canceladas' => 0
+        ];
+    }
+}
+
+// Actualiza el método manejarSolicitudesAjax para incluir las nuevas acciones
+public function manejarSolicitudesAjax()
+{
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        header('Content-Type: application/json');
+
+        try {
+            if (isset($_GET['action'])) {
+                switch ($_GET['action']) {
+                    case 'obtenerActividadesCalendario':
+                        $idDepartamento = isset($_GET['idDepartamento']) ? (int)$_GET['idDepartamento'] : null;
+                        echo json_encode($this->obtenerActividadesParaCalendario($idDepartamento));
+                        exit();
+                        
+                    case 'obtenerDetallesActividad':
+                        if (!isset($_GET['idActividad'])) {
+                            throw new Exception("ID de actividad no proporcionado");
+                        }
+                        $idActividad = (int)$_GET['idActividad'];
+                        echo json_encode($this->obtenerDetallesActividad($idActividad));
+                        exit();
+                        
+                    case 'obtenerHistorialActividad':
+                        if (!isset($_GET['idActividad'])) {
+                            throw new Exception("ID de actividad no proporcionado");
+                        }
+                        $idActividad = (int)$_GET['idActividad'];
+                        echo json_encode($this->obtenerHistorialActividad($idActividad));
+                        exit();
+                        
+                    case 'obtenerEstadisticasActividades':
+                        $idDepartamento = isset($_GET['idDepartamento']) ? (int)$_GET['idDepartamento'] : null;
+                        echo json_encode($this->obtenerEstadisticasActividades($idDepartamento));
+                        exit();
+                        
+                    case 'obtenerCategorias':
+                        if (isset($_GET['idDepartamento'])) {
+                            echo json_encode($this->obtenerCategoriasPorDepartamento($_GET['idDepartamento']));
+                            exit();
+                        }
+                        break;
+                        
+                    case 'obtenerLimiteActividades':
+                        if (isset($_GET['idEmpleado'])) {
+                            $idEmpleado = (int)$_GET['idEmpleado'];
+                            $limite = $this->modelo->obtenerLimiteActividadesPorEmpleado($idEmpleado);
+                            $actividadesActuales = $this->modelo->contarActividadesActivasPorEmpleado($idEmpleado);
+                            
+                            echo json_encode([
+                                'limite' => $limite,
+                                'actividadesActuales' => $actividadesActuales,
+                                'disponibles' => $limite - $actividadesActuales
+                            ]);
+                            exit();
+                        }
+                        break;
+                }
+            }
+        } catch (Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+            exit();
+        }
+    }
+}
+
+public function obtenerActividadesParaCalendario($idDepartamento = null)
+{
+    try {
+        $actividades = $this->modelo->obtenerActividadesParaCalendario($idDepartamento);
+
+        // Formatear para FullCalendar
+        $eventos = [];
+        foreach ($actividades as $actividad) {
+            if ($idDepartamento && $actividad['idDepartamento'] != $idDepartamento) {
+                continue;
+            }
+            
+            $evento = [
+                'id' => $actividad['idActividad'],
+                'title' => $actividad['nombreActividad'],
+                'start' => $actividad['fechaInicio'],
+                'end' => $actividad['fechaCulminacion'],
+                'extendedProps' => [
+                    'empleado' => $actividad['nombreEmpleado'] ?? '',
+                    'categoria' => $actividad['nombreCategoria'] ?? '',
+                    'description' => $actividad['descripcionActividad'] ?? '',
+                    'estado' => $actividad['nombreEstado'] ?? ''
+                ]
+            ];
+
+            // Asignar color según estado
+            switch (trim($actividad['nombreEstado'])) {
+                case 'Completada':
+                    $evento['className'] = 'event-completada';
+                    $evento['color'] = '#10B981';
+                    break;
+                case 'Cancelada':
+                    $evento['className'] = 'event-cancelada';
+                    $evento['color'] = '#EF4444';
+                    break;
+                case 'Retraso':
+                    $evento['className'] = 'event-retraso';
+                    $evento['color'] = '#3B82F6';
+                    break;
+                case 'Por Iniciar':
+                    $evento['className'] = 'event-por-iniciar';
+                    $evento['color'] = '#FBBF24';
+                    break;
+                case 'En progreso':
+                    $evento['className'] = 'event-en-progreso';
+                    $evento['color'] = '#F59E0B';
+                    break;
+                default:
+                    $evento['className'] = 'event-otro';
+                    $evento['color'] = '#6B7280';
+            }
+
+            $eventos[] = $evento;
+        }
+
+        return $eventos;
+    } catch (Exception $e) {
+        error_log("Error al obtener actividades para calendario: " . $e->getMessage());
+        return ['error' => $e->getMessage()];
+    }
+}
 
     public function obtenerHistorialActividad($idActividad)
     {

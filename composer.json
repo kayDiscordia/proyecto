@@ -1,0 +1,12 @@
+{
+    "name": "admin/proyecto-proyectov11",
+    "authors": [
+        {
+            "name": "Lexuga21",
+            "email": "unalexuga@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "phpdocumentor/phpdocumentor": "^3.4"
+    }
+}

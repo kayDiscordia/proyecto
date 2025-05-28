@@ -160,4 +160,6 @@ class controladorEmpleado {
             throw new Exception("Error al verificar la cédula: " . $e->getMessage());
         }
     }
+    
+    
 }
