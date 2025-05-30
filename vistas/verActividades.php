@@ -482,8 +482,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="JS/datatable-buttons-net.js"></script>
     <script src="JS/flatpicker.js"></script>
     <script src="JS/jspdf-autotable.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="JS/pdfmake.js"></script>
+    <script src="JS/vfs.js"></script>
     <script>
         // Inicializar datepickers
         flatpickr("#fechaInicio", {
