@@ -1,7 +1,17 @@
 <?php
 session_start();
 require_once '../controladores/controladorActividad.php';
+require_once '../login/functionLogin.php';
 
+// Verificar si el usuario está logueado
+// Asegúrate de iniciar la sesión
+$select = new Login();
+if (isset($_SESSION['id'])) {
+    $user = $select->SelectuserByuser($_SESSION['id']);
+} else {
+    header('Location: ../index.php');
+    exit();
+}
 $controlador = new controladorActividad();
 
 // Obtener fechas y departamento del formulario si existen

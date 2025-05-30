@@ -10,9 +10,9 @@ require_once '../login/functionLogin.php';
 $select = new Login();
 if (isset($_SESSION['id'])) {
     $user = $select->SelectuserByuser($_SESSION['id']);
+    $idDepartamentoUsuario = $_SESSION['idDepartamento'] ?? null;
 } else {
-    header('Location: index.php');
-    exit();
+    header('location: ../index.php');
 }
 
 // Crear una instancia de la clase Empleado

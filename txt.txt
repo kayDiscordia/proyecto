@@ -79,4 +79,14 @@ y cuando se cancela o culmina la actividad. (Al hacer esto coloca además la des
 
 
 11/5/2025 
--:skull: muchos cambios
+-:skull: muchos 
+
+30/5/2025
+
+-Este txt ha dejado de revisar el progreso real del proyecto desde hace mas o menos 2 semanas
+Para vizualizar los verdaderos avances completos revisar commits de github
+
+-agregar datatable
+-todas las librerias en local finalmente
+-exportar pdf hecho ahora con pdfmaker y otras librerias
+-validacion en todas las vistas nuevas agregadas

@@ -6,8 +6,9 @@ require_once '../login/functionLogin.php';
 $select = new Login();
 if (isset($_SESSION['id'])) {
     $user = $select->SelectuserByuser($_SESSION['id']);
+    $idDepartamentoUsuario = $_SESSION['idDepartamento'] ?? null;
 } else {
-    header('location: index.php');
+    header('location: ../index.php');
 }
 
 $empleado = new controladorEmpleado();

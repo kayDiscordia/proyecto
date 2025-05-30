@@ -952,7 +952,7 @@ class modeloActividad
                 estadoActividad es ON a.idEstado = es.idEstado
             JOIN 
                 categoriasactividades c ON a.idCategoria = c.idCategoria
-        ";
+            ";
 
             $conditions = [];
             $params = [];
@@ -983,12 +983,38 @@ class modeloActividad
             $stmt->execute();
             $result = $stmt->get_result();
 
-            $actividades = [];
+            $eventos = [];
             while ($row = $result->fetch_assoc()) {
-                $actividades[] = $row;
+                // Evento solo en la fecha de inicio
+                $eventos[] = [
+                    'title' => $row['nombreActividad'] . ' (Inicio)',
+                    'start' => $row['fechaInicio'],
+                    'extendedProps' => [
+                        'estado' => $row['nombreEstado'],
+                        'empleado' => $row['nombreEmpleado'],
+                        'categoria' => $row['nombreCategoria'],
+                        'description' => $row['descripcionActividad'],
+                    ],
+                ];
+                // Si la fecha de fin es diferente a la de inicio, agrega evento en la fecha de fin
+                if (
+                    !empty($row['fechaCulminacion']) &&
+                    $row['fechaCulminacion'] !== $row['fechaInicio']
+                ) {
+                    $eventos[] = [
+                        'title' => $row['nombreActividad'] . ' (Fin)',
+                        'start' => $row['fechaCulminacion'],
+                        'extendedProps' => [
+                            'estado' => $row['nombreEstado'],
+                            'empleado' => $row['nombreEmpleado'],
+                            'categoria' => $row['nombreCategoria'],
+                            'description' => $row['descripcionActividad'],
+                        ],
+                    ];
+                }
             }
 
-            return $actividades;
+            return $eventos;
         } catch (Exception $e) {
             throw new Exception("Error al obtener actividades para calendario: " . $e->getMessage());
         }

@@ -58,6 +58,20 @@ class modeloEmpleado
         }
     }
 
+    public function obtenerCargosPorDepartamento($idDepartamento)
+    {
+        $query = "SELECT * FROM cargos WHERE idDepartamento = ?";
+        $stmt = $this->db->getConnection()->prepare($query);
+        $stmt->bind_param("i", $idDepartamento);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        if ($resultado) {
+            return $resultado->fetch_all(MYSQLI_ASSOC);
+        } else {
+            throw new Exception("Error al obtener cargos por departamento: " . $this->db->getConnection()->error);
+        }
+    }
+
     public function obtenerCargos()
     {
         $query = "SELECT * FROM cargos";
