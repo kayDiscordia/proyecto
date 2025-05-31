@@ -1,31 +1,29 @@
 <?php
 session_start();
 require_once '../controladores/controladorActividad.php';
-require_once '../login/functionLogin.php';
 
-// Verificar si el usuario está logueado
-// Asegúrate de iniciar la sesión
-$select = new Login();
-if (isset($_SESSION['id'])) {
-    $user = $select->SelectuserByuser($_SESSION['id']);
-    $idDepartamentoUsuario = $_SESSION['idDepartamento'] ?? null;
-} else {
-    header('location: ../index.php');
-}
 $controlador = new controladorActividad();
 
 // Obtener fechas y departamento del formulario si existen
 $fechaInicio = $_GET['fechaInicio'] ?? '';
 $fechaFin = $_GET['fechaFin'] ?? '';
-$idDepartamento = $_GET['idDepartamento'] ?? ($_SESSION['idDepartamento'] ?? null); // Usar departamento de sesión si no se especifica
+$idDepartamento = $_GET['idDepartamento'] ?? ($_SESSION['idDepartamento'] ?? null);
 
 // Obtener datos para la gráfica
 $datosGrafica = $controlador->obtenerDatosGraficaSemanalMensual($fechaInicio, $fechaFin, $idDepartamento);
+
+// Ordenar los datos por el campo 'orden' si existe
+if (is_array($datosGrafica) && !isset($datosGrafica['error'])) {
+    usort($datosGrafica, function($a, $b) {
+        return ($a['orden'] ?? 0) <=> ($b['orden'] ?? 0);
+    });
+}
+
 $actividades = $controlador->obtenerActividadesFiltradas(
-    'todos', // estado
+    'todos',
     $fechaInicio,
     $fechaFin,
-    'todas', // categoría
+    'todas',
     $idDepartamento
 );
 
@@ -283,6 +281,7 @@ foreach ($actividades as $actividad) {
     <script>
         const actividades = <?= json_encode($actividades) ?>;
         const historialActividades = <?= json_encode($historialActividades) ?>;
+        const datosGrafica = <?= json_encode(isset($datosGrafica['error']) ? [] : $datosGrafica) ?>;
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -301,9 +300,9 @@ foreach ($actividades as $actividad) {
             document.getElementById('btnSemanaActual').addEventListener('click', function() {
                 const now = new Date();
                 const firstDay = new Date(now);
-                firstDay.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)); // Lunes de esta semana
+                firstDay.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
                 const lastDay = new Date(firstDay);
-                lastDay.setDate(firstDay.getDate() + 6); // Domingo de esta semana
+                lastDay.setDate(firstDay.getDate() + 6);
 
                 document.getElementById('fechaInicio').valueAsDate = firstDay;
                 document.getElementById('fechaFin').valueAsDate = lastDay;
@@ -314,15 +313,14 @@ foreach ($actividades as $actividad) {
             document.getElementById('btnLimpiarFiltro').addEventListener('click', function() {
                 document.getElementById('fechaInicio').value = '';
                 document.getElementById('fechaFin').value = '';
-                document.getElementById('idDepartamento').value = '';
+                const dep = document.getElementById('idDepartamento');
+                if (dep) dep.value = '';
                 document.querySelector('form').submit();
             });
 
             // Configurar gráfica
             const ctx = document.getElementById('graficaActividades').getContext('2d');
-            const datosGrafica = <?= json_encode(isset($datosGrafica['error']) ? [] : $datosGrafica) ?>;
-
-            let chart; // Variable para almacenar la gráfica
+            let chart;
 
             function renderChart(tipo) {
                 if (chart) {
@@ -337,38 +335,41 @@ foreach ($actividades as $actividad) {
                     return;
                 }
 
-                const labels = datosGrafica.map(item => item.periodo);
+                // Ordenar datos por el campo 'orden'
+                const datosOrdenados = [...datosGrafica].sort((a, b) => (a.orden || 0) - (b.orden || 0));
+                
+                const labels = datosOrdenados.map(item => item.periodo);
                 const datasets = [{
                         label: 'Completadas',
-                        data: datosGrafica.map(item => item.Completada || 0),
+                        data: datosOrdenados.map(item => item.Completada || 0),
                         backgroundColor: '#10B981',
                         borderColor: '#047857',
                         borderWidth: 1
                     },
                     {
                         label: 'Canceladas',
-                        data: datosGrafica.map(item => item.Cancelada || 0),
+                        data: datosOrdenados.map(item => item.Cancelada || 0),
                         backgroundColor: '#EF4444',
                         borderColor: '#B91C1C',
                         borderWidth: 1
                     },
                     {
                         label: 'En Progreso',
-                        data: datosGrafica.map(item => item['En progreso'] || 0),
+                        data: datosOrdenados.map(item => item['En progreso'] || 0),
                         backgroundColor: '#F59E0B',
                         borderColor: '#B45309',
                         borderWidth: 1
                     },
                     {
                         label: 'Por Iniciar',
-                        data: datosGrafica.map(item => item['Por iniciar'] || 0),
+                        data: datosOrdenados.map(item => item['Por iniciar'] || 0),
                         backgroundColor: '#3B82F6',
                         borderColor: '#1E40AF',
                         borderWidth: 1
                     },
                     {
                         label: 'En Retraso',
-                        data: datosGrafica.map(item => item['En retraso'] || 0),
+                        data: datosOrdenados.map(item => item['En retraso'] || 0),
                         backgroundColor: '#F87171',
                         borderColor: '#B91C1C',
                         borderWidth: 1
@@ -430,9 +431,7 @@ foreach ($actividades as $actividad) {
 
             // Configurar botón para exportar el PDF
             document.getElementById('exportarPDF').addEventListener('click', function() {
-                const {
-                    jsPDF
-                } = window.jspdf;
+                const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF();
 
                 let fechaInicio = document.getElementById('fechaInicio').value;
@@ -440,7 +439,6 @@ foreach ($actividades as $actividad) {
                 let departamentoSelect = document.getElementById('idDepartamento');
                 let departamentoTexto = departamentoSelect ? departamentoSelect.options[departamentoSelect.selectedIndex].text : 'Todos';
 
-                // Si no hay filtro, calcular fechas del mes actual
                 if (!fechaInicio || !fechaFin) {
                     const hoy = new Date();
                     const mes = hoy.getMonth();
@@ -453,17 +451,14 @@ foreach ($actividades as $actividad) {
                     fechaFin = `${ultimoDia.getFullYear()}-${pad(ultimoDia.getMonth() + 1)}-${pad(ultimoDia.getDate())}`;
                 }
 
-                // Título del reporte
                 pdf.setFontSize(16);
                 pdf.text('Reporte de Actividades', 10, 10);
 
-                // Fechas y departamento del reporte
                 pdf.setFontSize(12);
                 pdf.text(`Fecha Inicio: ${fechaInicio}`, 10, 20);
                 pdf.text(`Fecha Fin: ${fechaFin}`, 10, 30);
                 pdf.text(`Departamento: ${departamentoTexto || 'Todos'}`, 10, 40);
 
-                // Resumen
                 pdf.text('Resumen de Actividades', 10, 50);
 
                 const resumenTable = document.getElementById('resumenTable');
@@ -476,25 +471,14 @@ foreach ($actividades as $actividad) {
                         halign: 'center'
                     },
                     columnStyles: {
-                        1: {
-                            fillColor: [220, 252, 231]
-                        }, // Verde para completadas
-                        2: {
-                            fillColor: [254, 226, 226]
-                        }, // Rojo para canceladas
-                        3: {
-                            fillColor: [254, 249, 195]
-                        }, // Amarillo para en progreso
-                        4: {
-                            fillColor: [219, 234, 254]
-                        }, // Azul para por iniciar
-                        5: {
-                            fillColor: [254, 226, 226]
-                        }, // Rojo claro para en retraso
+                        1: { fillColor: [220, 252, 231] },
+                        2: { fillColor: [254, 226, 226] },
+                        3: { fillColor: [254, 249, 195] },
+                        4: { fillColor: [219, 234, 254] },
+                        5: { fillColor: [254, 226, 226] },
                     },
                 });
 
-                // Tabla de actividades
                 let y = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 10 : 70;
                 if (actividades.length > 0) {
                     pdf.text('Detalle de Actividades', 10, y);
@@ -534,7 +518,6 @@ foreach ($actividades as $actividad) {
                     pdf.addImage(chartImage, 'PNG', margin, 20, imgWidth, imgHeight);
                 }
 
-                // Historial de actividades
                 if (Object.keys(historialActividades).length > 0) {
                     pdf.addPage();
                     pdf.text('Historial de Actividades', 10, 10);
@@ -576,8 +559,31 @@ foreach ($actividades as $actividad) {
                 }
                 pdf.save('reporte_actividades.pdf');
             });
+
+            // Validación automática de fechas
+            const fechaInicioInput = document.getElementById('fechaInicio');
+            const fechaFinInput = document.getElementById('fechaFin');
+
+            if (fechaInicioInput && fechaFinInput) {
+                fechaInicioInput.addEventListener('change', function() {
+                    if (fechaInicioInput.value) {
+                        fechaFinInput.min = fechaInicioInput.value;
+                        if (fechaFinInput.value && fechaFinInput.value < fechaInicioInput.value) {
+                            fechaFinInput.value = '';
+                        }
+                    } else {
+                        fechaFinInput.min = '';
+                    }
+                });
+
+                // Al cargar la página, si hay fecha de inicio, establecer el mínimo en fecha fin
+                if (fechaInicioInput.value) {
+                    fechaFinInput.min = fechaInicioInput.value;
+                } else {
+                    fechaFinInput.min = '';
+                }
+            }
         });
     </script>
 </body>
-
 </html>

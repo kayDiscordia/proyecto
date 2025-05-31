@@ -90,3 +90,8 @@ Para vizualizar los verdaderos avances completos revisar commits de github
 -todas las librerias en local finalmente
 -exportar pdf hecho ahora con pdfmaker y otras librerias
 -validacion en todas las vistas nuevas agregadas
+
+31/05/2025
+
+-Validaciones de fecha
+-reiniciar limite de actividades al pasar el dia

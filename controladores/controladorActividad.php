@@ -91,12 +91,15 @@ class controladorActividad
                     header('Location: ../vistas/verActividades.php?mensaje=Actividad registrada exitosamente');
                     exit();
                 }
+                
             } catch (Exception $e) {
                 error_log("Error al insertar actividad: " . $e->getMessage());
                 header('Location: ../vistas/registrarActividades.php?error=' . urlencode($e->getMessage()));
                 exit();
             }
+            
         }
+        
     }
     public function obtenerActividades()
     {

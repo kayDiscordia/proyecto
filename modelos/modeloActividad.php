@@ -542,35 +542,34 @@ class modeloActividad
 
     public function contarActividadesActivasPorEmpleado($idEmpleado)
     {
-        try {
-            $stmt = $this->db->getConnection()->prepare("
+    try {
+        $hoy = date('Y-m-d');
+        $stmt = $this->db->getConnection()->prepare("
             SELECT COUNT(*) as total 
             FROM actividades 
             WHERE idEmpleado = ? 
+            AND DATE(fechaInicio) = ?
             AND idEstado IN (
                 SELECT idEstado FROM estadoActividad 
                 WHERE nombreEstado IN ('Por iniciar', 'En progreso', 'Retraso')
             )
         ");
-
-            if (!$stmt) {
-                throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
-            }
-
-            $stmt->bind_param("i", $idEmpleado);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $row = $result->fetch_assoc();
-
-            return (int)$row['total'];
-        } catch (Exception $e) {
-            throw new Exception("Error al contar actividades del empleado: " . $e->getMessage());
-        } finally {
-            if (isset($stmt)) {
-                $stmt->close();
-            }
+        if (!$stmt) {
+            throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
+        }
+        $stmt->bind_param("is", $idEmpleado, $hoy);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        return (int)$row['total'];
+    } catch (Exception $e) {
+        throw new Exception("Error al contar actividades del empleado: " . $e->getMessage());
+    } finally {
+        if (isset($stmt)) {
+            $stmt->close();
         }
     }
+}
 
     public function obtenerHistorialActividad($idActividad)
     {

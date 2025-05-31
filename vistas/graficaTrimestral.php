@@ -1,17 +1,7 @@
 <?php
 session_start();
 require_once '../controladores/controladorActividad.php';
-require_once '../login/functionLogin.php';
 
-// Verificar si el usuario está logueado
-// Asegúrate de iniciar la sesión
-$select = new Login();
-if (isset($_SESSION['id'])) {
-    $user = $select->SelectuserByuser($_SESSION['id']);
-} else {
-    header('Location: ../index.php');
-    exit();
-}
 $controlador = new controladorActividad();
 
 // Obtener fechas y departamento del formulario si existen
@@ -319,7 +309,8 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
             document.getElementById('btnLimpiarFiltro').addEventListener('click', function() {
                 document.getElementById('fechaInicio').value = '';
                 document.getElementById('fechaFin').value = '';
-                document.getElementById('idDepartamento').value = '';
+                const dep = document.getElementById('idDepartamento');
+                if (dep) dep.value = '';
                 document.querySelector('form').submit();
             });
 
@@ -448,6 +439,23 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
 
             // Renderizar gráfica inicial
             renderChart();
+
+            // Validación automática de fechas: fechaFin no puede ser menor a fechaInicio
+            const fechaInicioInput = document.getElementById('fechaInicio');
+            const fechaFinInput = document.getElementById('fechaFin');
+
+            fechaInicioInput.addEventListener('change', function() {
+                fechaFinInput.min = fechaInicioInput.value;
+                // Si la fecha fin actual es menor, la borra
+                if (fechaFinInput.value && fechaFinInput.value < fechaInicioInput.value) {
+                    fechaFinInput.value = '';
+                }
+            });
+
+            // Si ya hay fecha de inicio al cargar, aplica el min
+            if (fechaInicioInput.value) {
+                fechaFinInput.min = fechaInicioInput.value;
+            }
 
             // Configurar botón para exportar el PDF
             document.getElementById('exportarPDF').addEventListener('click', function() {
