@@ -6,9 +6,11 @@ require_once '../login/functionLogin.php';
 
 // Verificar sesión
 $select = new Login();
-if (!isset($_SESSION['id'])) {
-    header(header: 'Location: index.php');
-    exit();
+if (isset($_SESSION['id'])) {
+    $user = $select->SelectuserByuser($_SESSION['id']);
+    $idDepartamentoUsuario = $_SESSION['idDepartamento'] ?? null;
+} else {
+    header('location: ../index.php');
 }
 
 $user = $select->SelectuserByuser($_SESSION['id']);

@@ -58,6 +58,20 @@ class modeloEmpleado
         }
     }
 
+    public function obtenerCargosPorDepartamento($idDepartamento)
+    {
+        $query = "SELECT * FROM cargos WHERE idDepartamento = ?";
+        $stmt = $this->db->getConnection()->prepare($query);
+        $stmt->bind_param("i", $idDepartamento);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        if ($resultado) {
+            return $resultado->fetch_all(MYSQLI_ASSOC);
+        } else {
+            throw new Exception("Error al obtener cargos por departamento: " . $this->db->getConnection()->error);
+        }
+    }
+
     public function obtenerCargos()
     {
         $query = "SELECT * FROM cargos";
@@ -251,22 +265,5 @@ class modeloEmpleado
         } else {
             throw new Exception("Error al verificar la cédula: " . $this->db->getConnection()->error);
         }
-    }
-    public function obtenerEmpleadosPorDepartamento($idDepartamento) {
-        $sql = "SELECT e.idEmpleado, e.nombres, e.apellidos, es.nombreEstado AS estado_nombre, c.nombreCargo
-                FROM empleados e
-                LEFT JOIN estadosEmpleados es ON e.idEstado = es.idEstado
-                LEFT JOIN cargos c ON e.idCargo = c.idCargo
-                WHERE e.idDepartamento = ?";
-        $stmt = $this->db->getConnection()->prepare($sql);
-        $stmt->bind_param("i", $idDepartamento);
-        $stmt->execute();
-        $resultado = $stmt->get_result();
-        $empleados = [];
-        while ($row = $resultado->fetch_assoc()) {
-            $empleados[] = $row;
-        }
-        $stmt->close();
-        return $empleados;
     }
 }

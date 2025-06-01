@@ -10,13 +10,13 @@ class controladorCargos
         $this->modelo = new modeloCargos();
     }
 
-    public function insertarCargo($nombreCargo, $limiteActividades, $descripcionCargo)
+    public function insertarCargo($nombreCargo, $limiteActividades, $descripcionCargo, $idDepartamento)
     {
         try {
-            $this->modelo->insertarCargo($nombreCargo, $limiteActividades, $descripcionCargo);
+            $this->modelo->insertarCargo($nombreCargo, $limiteActividades, $descripcionCargo, $idDepartamento);
             return json_encode(array("status" => "success", "message" => "Cargo insertado correctamente."));
         } catch (Exception $e) {
-            return json_encode(array("status" => "error", "message" => $e->getMessage()));
+            return $this->modelo->insertarCargo($nombreCargo, $limiteActividades, $descripcionCargo, $idDepartamento);
         }
     }
 }

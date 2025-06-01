@@ -15,7 +15,6 @@ if (isset($_SESSION['id'])) {
 // Obtener departamentos para el filtro
 $departamentos = $controladorActividad->obtenerDepartamentos();
 
-
 // Determinar departamento a filtrar (si no se seleccionó, usar el del usuario)
 $idDepartamentoFiltro = $_GET['idDepartamento'] ?? $idDepartamentoUsuario;
 
@@ -174,36 +173,30 @@ $eventosJson = json_encode($eventosCalendario);
 
             <!-- Contadores -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                <!-- Recuadro Total -->
-                <div class="status-card bg-[#6D28D9] text-white">
+                <a href="verActividades.php" class="block status-card bg-[#6D28D9] text-white hover:shadow-lg hover:scale-105 transition cursor-pointer">
                     <h2 class="text-lg font-semibold mb-2">Total Actividades</h2>
                     <p class="text-2xl font-bold"><?= $estadisticas['total'] ?></p>
-                </div>
-                <!-- Por Iniciar -->
-                <div class="status-card" style="background-color:#FACC15; color:#fff;">
+                </a>
+                <a href="verActividades.php?estado=Por%20Iniciar" class="block status-card" style="background-color:#FACC15; color:#fff;">
                     <h2 class="text-lg font-semibold mb-2">Por Iniciar</h2>
                     <p class="text-2xl font-bold"><?= $estadisticas['por_iniciar'] ?></p>
-                </div>
-                <!-- Retraso -->
-                <div class="status-card" style="background-color:#1D4ED8; color:#fff;">
+                </a>
+                <a href="verActividades.php?estado=Retraso" class="block status-card" style="background-color:#1D4ED8; color:#fff;">
                     <h2 class="text-lg font-semibold mb-2">Retraso</h2>
                     <p class="text-2xl font-bold"><?= $estadisticas['retraso'] ?? 0 ?></p>
-                </div>
-                <!-- En Proceso -->
-                <div class="status-card" style="background-color:#F97316; color:#fff;">
+                </a>
+                <a href="verActividades.php?estado=En%20progreso" class="block status-card" style="background-color:#F97316; color:#fff;">
                     <h2 class="text-lg font-semibold mb-2">En Proceso</h2>
                     <p class="text-2xl font-bold"><?= $estadisticas['en_progreso'] ?></p>
-                </div>
-                <!-- Canceladas -->
-                <div class="status-card" style="background-color:#EF4444; color:#fff;">
+                </a>
+                <a href="verActividades.php?estado=Cancelada" class="block status-card" style="background-color:#EF4444; color:#fff;">
                     <h2 class="text-lg font-semibold mb-2">Canceladas</h2>
                     <p class="text-2xl font-bold"><?= $estadisticas['canceladas'] ?></p>
-                </div>
-                <!-- Culminadas -->
-                <div class="status-card" style="background-color:#10B981; color:#fff;">
+                </a>
+                <a href="verActividades.php?estado=Completada" class="block status-card" style="background-color:#10B981; color:#fff;">
                     <h2 class="text-lg font-semibold mb-2">Completadas</h2>
                     <p class="text-2xl font-bold"><?= $estadisticas['completadas'] ?></p>
-                </div>
+                </a>
             </div>
 
             <!-- Calendario -->
@@ -216,13 +209,13 @@ $eventosJson = json_encode($eventosCalendario);
     <!-- FullCalendar JS -->
     <script src='JS/calendar-main.js'></script>
     <script src='JS/calendar-local.js'></script>
-     <!-- SweetAlert para modales -->
+    <!-- SweetAlert para modales -->
     <script src="JS/sweetalert.js"></script>
 
-     <script>
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             const eventos = <?php echo $eventosJson; ?>;
-            
+
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
@@ -233,27 +226,26 @@ $eventosJson = json_encode($eventosCalendario);
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
                 events: eventos,
+                dayMaxEvents: 3, // Muestra máximo 3 eventos, el resto aparece como "+X más"
                 eventClick: function(info) {
                     const event = info.event;
-                    
-                    // Modal 
                     Swal.fire({
                         title: event.title,
                         html: `
-                            <div class="text-left">
-                                <p><strong>Estado:</strong> ${event.extendedProps.estado}</p>
-                                <p><strong>Empleado:</strong> ${event.extendedProps.empleado}</p>
-                                <p><strong>Categoría:</strong> ${event.extendedProps.categoria}</p>
-                                <p><strong>Fecha Inicio:</strong> ${event.start.toLocaleDateString()}</p>
-                                ${event.end ? `<p><strong>Fecha Fin:</strong> ${event.end.toLocaleDateString()}</p>` : ''}
-                                <p><strong>Descripción:</strong> ${event.extendedProps.description}</p>
-                            </div>
-                        `,
+                <div class="text-left">
+                    <p><strong>Estado:</strong> ${event.extendedProps.estado}</p>
+                    <p><strong>Empleado:</strong> ${event.extendedProps.empleado}</p>
+                    <p><strong>Categoría:</strong> ${event.extendedProps.categoria}</p>
+                    <p><strong>Fecha Inicio:</strong> ${event.start.toLocaleDateString()}</p>
+                    ${event.end ? `<p><strong>Fecha Fin:</strong> ${event.end.toLocaleDateString()}</p>` : ''}
+                    <p><strong>Descripción:</strong> ${event.extendedProps.description}</p>
+                </div>
+            `,
                         confirmButtonText: 'Cerrar'
                     });
                 }
             });
-            
+
             calendar.render();
         });
     </script>

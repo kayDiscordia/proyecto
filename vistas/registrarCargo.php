@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombreCargo = trim($_POST['nombreCargo']);
     $limiteActividades = intval($_POST['limiteActividades']);
     $descripcionCargo = trim($_POST['descripcionCargo']);
+    $idDepartamento = isset($_POST['idDepartamento']) ? intval($_POST['idDepartamento']) : null;
 
     // Validación de datos
     $nombreRegex = '/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/';
@@ -37,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $controlador = new controladorCargos();
-    $result = json_decode($controlador->insertarCargo($nombreCargo, $limiteActividades, $descripcionCargo), true);
+    $result = json_decode($controlador->insertarCargo($nombreCargo, $limiteActividades, $descripcionCargo, $idDepartamento), true);
 
     if ($result['status'] === 'success') {
         header('Location: registrarCargo.php?mensaje=' . urlencode($result['message']));
@@ -79,6 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="w-full max-w-2xl mx-auto">
                 <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
                     <form action="" method="POST" id="cargoForm" class="space-y-4">
+                        <!-- ID del departamento -->
+                        <input type="hidden" name="idDepartamento" value="<?php echo htmlspecialchars($_SESSION['idDepartamento']); ?>">
                         <!-- Nombre del cargo -->
                         <div class="space-y-2">
                             <label for="nombreCargo" class="block text-sm font-medium text-gray-700">Nombre del Cargo</label>

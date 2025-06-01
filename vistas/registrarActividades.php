@@ -13,7 +13,7 @@ require_once '../controladores/controladorActividad.php';
 require_once '../controladores/controladorEmpleado.php';
 
 $controladorEmpleado = new controladorEmpleado();
-$empleados = $controladorEmpleado->obtenerEmpleadosPorDepartamento($_SESSION['idDepartamento']);
+$empleados = $controladorEmpleado->obtenerEmpleados();
 $departamentos = $controladorEmpleado->obtenerDepartamentos();
 
 $controlador = new controladorActividad();
@@ -91,8 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="w-full max-w-2xl mx-auto">
                 <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-                    <form action="" method="POST" id="activityForm" class="space-y-4">
-                        <!--Departamento-->
+                <form action="" method="POST" id="activityForm" class="space-y-4" enctype="multipart/form-data">
+                         <!--Departamento-->
                         <div class="space-y-2">
                             <label for="departamento" class="block text-sm font-medium text-gray-700">Departamento</label>
                             <input type="text" id="departamento" name="departamento"
@@ -124,7 +124,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <textarea id="descripcionActividad" name="descripcionActividad" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Ingrese la descripción de la actividad" required><?php echo isset($formData['descripcionActividad']) ? htmlspecialchars($formData['descripcionActividad']) : ''; ?></textarea>
                             </div>
                         </div>
-
                         <div class="grid grid-cols-1 gap-3">
                             <div class="space-y-2">
                                 <label for="fechaInicio" class="block text-sm font-medium text-gray-700">Fecha de Inicio</label>
@@ -152,15 +151,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <option value="<?php echo $empleado['idEmpleado']; ?>"
                                             <?php echo (!empty($formData['idEmpleado']) && $formData['idEmpleado'] == $empleado['idEmpleado'] ? 'selected' : ''); ?>>
                                             <?php echo htmlspecialchars($empleado['nombres'] . ' ' . $empleado['apellidos']); ?>
-                                            <?php if (!empty($empleado['nombreCargo'])): ?>
-                                                (<?php echo htmlspecialchars($empleado['nombreCargo']); ?>)
-                                            <?php endif; ?>
                                         </option>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
                             </select>
                             <p id="empleadoLimiteInfo" class="text-xs text-gray-500 hidden"></p>
                         </div>
+
+                        <div class="space-y-2">
+    <label for="archivosAdjuntos" class="block text-sm font-medium text-gray-700">Archivos Adjuntos</label>
+    <input type="file" id="archivosAdjuntos" name="archivosAdjuntos[]" multiple
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+    <p class="text-xs text-gray-500">Formatos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF. Máx. 5MB por archivo.</p>
+</div>
+
                         <br>
                         <div class="flex justify-between">
                             <a href="home.php" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
@@ -184,76 +188,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
 
         document.addEventListener('DOMContentLoaded', async function() {
-        const categoriaSelect = document.getElementById('idCategoria');
-        const departamentoId = "<?php echo isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : ''; ?>";
+            const categoriaSelect = document.getElementById('idCategoria');
+            const departamentoId = "<?php echo isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : ''; ?>";
 
-        if (departamentoId) {
-            try {
-                // Realizar la solicitud para obtener las categorías
-                const response = await fetch(`obtenerCategorias.php?idDepartamento=${departamentoId}`);
-                if (!response.ok) {
-                    throw new Error('Error al cargar categorías');
+            if (departamentoId) {
+                try {
+                    // Realizar la solicitud para obtener las categorías
+                    const response = await fetch(`obtenerCategorias.php?idDepartamento=${departamentoId}`);
+                    if (!response.ok) {
+                        throw new Error('Error al cargar categorías');
+                    }
+
+                    const categorias = await response.json();
+
+                    // Limpiar el select y agregar las categorías
+                    categoriaSelect.innerHTML = '<option value="">Seleccione una categoría</option>';
+                    categorias.forEach(categoria => {
+                        const option = document.createElement('option');
+                        option.value = categoria.idCategoria;
+                        option.text = categoria.nombreCategoria;
+                        categoriaSelect.add(option);
+                    });
+                } catch (error) {
+                    console.error('Error al cargar categorías:', error);
+                    categoriaSelect.innerHTML = '<option value="">Error al cargar categorías</option>';
                 }
-
-                const categorias = await response.json();
-
-                // Limpiar el select y agregar las categorías
-                categoriaSelect.innerHTML = '<option value="">Seleccione una categoría</option>';
-                categorias.forEach(categoria => {
-                    const option = document.createElement('option');
-                    option.value = categoria.idCategoria;
-                    option.text = categoria.nombreCategoria;
-                    categoriaSelect.add(option);
-                });
-            } catch (error) {
-                console.error('Error al cargar categorías:', error);
-                categoriaSelect.innerHTML = '<option value="">Error al cargar categorías</option>';
-            }
-        } else {
-            categoriaSelect.innerHTML = '<option value="">No se encontró un departamento válido</option>';   
-        }
-
-        // Verificar el límite de actividades al seleccionar un empleado
-        const empleadoSelect = document.getElementById('idEmpleado');
-        const submitBtn = document.querySelector('button[type="submit"]');
-        const infoElement = document.getElementById('empleadoLimiteInfo');
-
-        empleadoSelect.addEventListener('change', async function() {
-            const empleadoId = this.value;
-            if (!empleadoId) {
-                infoElement.classList.add('hidden');
-                submitBtn.disabled = false;
-                return;
+            } else {
+                categoriaSelect.innerHTML = '<option value="">No se encontró un departamento válido</option>';
             }
 
-            try {
-const response = await fetch('../controladores/controladorActividad.php?action=obtenerLimiteActividades&idEmpleado=' + empleadoId);                if (!response.ok) throw new Error('Error al verificar límite de actividades');
-                const data = await response.json();
+            // Verificar el límite de actividades al seleccionar un empleado
+            const empleadoSelect = document.getElementById('idEmpleado');
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const infoElement = document.getElementById('empleadoLimiteInfo');
 
-                if (data.error) {
-                    infoElement.textContent = 'Error: ' + data.error;
-                    infoElement.classList.remove('hidden');
-                    submitBtn.disabled = true;
+            empleadoSelect.addEventListener('change', async function() {
+                const empleadoId = this.value;
+                if (!empleadoId) {
+                    infoElement.classList.add('hidden');
+                    submitBtn.disabled = false;
                     return;
                 }
 
-                infoElement.textContent = `Actividades: ${data.actividadesActuales}/${data.limite} (Disponibles: ${data.disponibles})`;
-                infoElement.classList.remove('hidden');
+                try {
+                    const response = await fetch('../controladores/controladorActividad.php?action=obtenerLimiteActividades&idEmpleado=' + empleadoId);
+                    if (!response.ok) throw new Error('Error al verificar límite de actividades');
+                    const data = await response.json();
 
-                if (data.disponibles <= 0) {
-                    infoElement.classList.add('text-red-600', 'font-bold');
-                    infoElement.textContent += ' - ¡LÍMITE ALCANZADO!';
+                    if (data.error) {
+                        infoElement.textContent = 'Error: ' + data.error;
+                        infoElement.classList.remove('hidden');
+                        submitBtn.disabled = true;
+                        return;
+                    }
+
+                    infoElement.textContent = `Actividades: ${data.actividadesActuales}/${data.limite} (Disponibles: ${data.disponibles})`;
+                    infoElement.classList.remove('hidden');
+
+                    if (data.disponibles <= 0) {
+                        infoElement.classList.add('text-red-600', 'font-bold');
+                        infoElement.textContent += ' - ¡LÍMITE ALCANZADO!';
+                        submitBtn.disabled = true;
+                    } else {
+                        infoElement.classList.remove('text-red-600', 'font-bold');
+                        submitBtn.disabled = false;
+                    }
+                } catch (error) {
+                    infoElement.textContent = 'Error al verificar límite.';
+                    infoElement.classList.remove('hidden');
                     submitBtn.disabled = true;
-                } else {
-                    infoElement.classList.remove('text-red-600', 'font-bold');
-                    submitBtn.disabled = false;
                 }
-            } catch (error) {
-                infoElement.textContent = 'Error al verificar límite.';
-                infoElement.classList.remove('hidden');
-                submitBtn.disabled = true;
-            }
-        });
+            });
         });
     </script>
 </body>

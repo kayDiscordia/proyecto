@@ -2,6 +2,17 @@
 session_start();
 require_once '../controladores/controladorActividad.php';
 
+require_once '../login/functionLogin.php';
+
+// Verificar si el usuario está logueado
+// Asegúrate de iniciar la sesión
+$select = new Login();
+if (isset($_SESSION['id'])) {
+    $user = $select->SelectuserByuser($_SESSION['id']);
+    $idDepartamentoUsuario = $_SESSION['idDepartamento'] ?? null;
+} else {
+    header('location: ../index.php');
+}
 if (!isset($_GET['id'])) {
     die("ID de actividad no proporcionado.");
 }

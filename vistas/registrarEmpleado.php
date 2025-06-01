@@ -11,6 +11,7 @@ if (isset($_SESSION['id'])) {
 } else {
     header('location: ../index.php');
 }
+
 $controlador = new controladorEmpleado();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'verificarCedula') {
@@ -19,8 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
 }
 
 $controlador->insercionEmpleado();
-$cargos = $controlador->obtenerCargos();
-$departamentos = $controlador->obtenerDepartamentos();
+$idDepartamento = isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : null;
+$cargos = [];
+if ($idDepartamento) {
+    $cargos = $controlador->obtenerCargosPorDepartamento($idDepartamento);
+}$departamentos = $controlador->obtenerDepartamentos();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cedula = trim($_POST['cedula']);

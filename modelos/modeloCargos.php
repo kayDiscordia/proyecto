@@ -10,16 +10,15 @@ class modeloCargos
         $this->db = new Database();
     }
 
-    public function insertarCargo($nombreCargo, $limiteActividades, $descripcionCargo)
+    public function insertarCargo($nombreCargo, $limiteActividades, $descripcionCargo, $idDepartamento)
     {
-        $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO cargos (nombreCargo, limiteActividades, descripcionCargo) VALUES (?, ?, ?)"
-        );
-        $stmt->bind_param("sis", $nombreCargo, $limiteActividades, $descripcionCargo);
-        if (!$stmt->execute()) {
-            throw new Exception("Error al insertar cargo: " . $stmt->error);
+        $sql = "INSERT INTO cargos (nombreCargo, limiteActividades, descripcionCargo, idDepartamento) VALUES (?, ?, ?, ?)";
+        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt->bind_param("sisi", $nombreCargo, $limiteActividades, $descripcionCargo, $idDepartamento);
+        if ($stmt->execute()) {
+            return json_encode(['status' => 'success', 'message' => 'Cargo registrado correctamente.']);
+        } else {
+            return json_encode(['status' => 'error', 'message' => 'Error al registrar el cargo.']);
         }
-        $stmt->close();
-        return true;
     }
 }
