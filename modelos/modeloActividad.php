@@ -14,48 +14,54 @@ class modeloActividad
     public function insertarActividad($nombreActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria)
     {
         try {
-            $idEstado = 2; // ID del estado "En progreso"
-
-            $stmt = $this->db->getConnection()->prepare("
-            INSERT INTO actividades (nombreActividad, descripcionActividad, fechaInicio, fechaCulminacion, idEmpleado, idCategoria, idEstado)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ");
-
+            $sql = "INSERT INTO actividades (nombreActividad, descripcionActividad, fechaInicio, fechaCulminacion, idEmpleado, idEstado, idCategoria)
+            VALUES (?, ?, ?, ?, ?, 2, ?)";
+            $stmt = $this->db->getConnection()->prepare($sql);
             if (!$stmt) {
                 throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
             }
-
             $stmt->bind_param(
-                "ssssiii",
+                "ssssii",
                 $nombreActividad,
                 $descripcionActividad,
                 $fechaInicio,
                 $fechaCulminacion,
                 $idEmpleado,
-                $idCategoria,
-                $idEstado
+                $idCategoria
             );
-
-            if ($stmt->execute()) {
-                $idActividad = $this->db->getConnection()->insert_id;
-
-                // Registrar el evento en el historial
-                $evento = "Creación de actividad";
-                $detalles = "Nombre: '$nombreActividad'. Descripción: '$descripcionActividad'";
-                $this->registrarCambioEnHistorial($idActividad, $evento, $detalles);
-
-                return true;
-            } else {
-                throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
+            if (!$stmt->execute()) {
+                throw new Exception("Error al insertar la actividad: " . $stmt->error);
             }
+            $idActividad = $this->db->getConnection()->insert_id;
+            $stmt->close();
+
+            // Obtener nombre del empleado asignado
+            $stmtEmpleado = $this->db->getConnection()->prepare("SELECT nombres, apellidos FROM empleados WHERE idEmpleado = ?");
+            $stmtEmpleado->bind_param("i", $idEmpleado);
+            $stmtEmpleado->execute();
+            $empleado = $stmtEmpleado->get_result()->fetch_assoc();
+            $nombreEmpleado = $empleado ? $empleado['nombres'] . ' ' . $empleado['apellidos'] : 'Desconocido';
+            $stmtEmpleado->close();
+
+            // Obtener nombre de la categoría
+            $stmtCategoria = $this->db->getConnection()->prepare("SELECT nombreCategoria FROM categoriasactividades WHERE idCategoria = ?");
+            $stmtCategoria->bind_param("i", $idCategoria);
+            $stmtCategoria->execute();
+            $categoria = $stmtCategoria->get_result()->fetch_assoc();
+            $nombreCategoria = $categoria ? $categoria['nombreCategoria'] : 'Desconocida';
+            $stmtCategoria->close();
+
+            // Registrar en historial con todos los datos
+            $evento = "Creación de actividad";
+            $detalles = "Actividad: '$nombreActividad'. Descripción: '$descripcionActividad'. Empleado asignado: '$nombreEmpleado'. Categoría: '$nombreCategoria'.";
+            $this->registrarCambioEnHistorial($idActividad, $evento, $detalles);
+
+            return $idActividad;
         } catch (Exception $e) {
             throw new Exception("Error al insertar la actividad: " . $e->getMessage());
-        } finally {
-            if (isset($stmt)) {
-                $stmt->close();
-            }
         }
     }
+
 
     public function editarActividad($idActividad, $descripcionActividad, $fechaInicio, $fechaCulminacion, $idEmpleado, $idCategoria)
     {
@@ -365,36 +371,27 @@ class modeloActividad
     public function obtenerEstadisticasSemanalesMensuales($fechaInicio, $fechaFin, $idDepartamento = null)
     {
         try {
-            if (!strtotime($fechaInicio)) { // <-- Corrige el paréntesis aquí
+            if (!strtotime($fechaInicio)) {
                 $fechaInicio = date('Y-m-01');
             }
             if (!strtotime($fechaFin)) {
                 $fechaFin = date('Y-m-t');
             }
 
-            // Determinar si el rango de fechas es menor a 3 meses (mostrar por semana) o mayor (mostrar por mes)
-            $diff = (strtotime($fechaFin) - strtotime($fechaInicio)) / (60 * 60 * 24);
-            $agruparPor = ($diff <= 90) ? 'SEMANA' : 'MES'; // Si el rango es <= 90 días, agrupar por semana
-
+            // Obtener actividades en el rango y departamento
             $query = "
-                SELECT 
-                    es.nombreEstado AS estado,
-                    COUNT(a.idActividad) AS cantidad,
-                    " . ($agruparPor === 'SEMANA' ?
-                    "CONCAT('Semana ', WEEK(a.fechaInicio, 1), ' ', YEAR(a.fechaInicio)) AS periodo" :
-                    "CONCAT(MONTHNAME(a.fechaInicio), ' ', YEAR(a.fechaInicio)) AS periodo") . ",
-                    " . ($agruparPor === 'SEMANA' ?
-                    "WEEK(a.fechaInicio, 1) AS orden" :
-                    "YEAR(a.fechaInicio) * 100 + MONTH(a.fechaInicio) AS orden") . "
-                FROM 
-                    actividades a
-                JOIN 
-                    estadoActividad es ON a.idEstado = es.idEstado
-                JOIN 
-                    categoriasactividades c ON a.idCategoria = c.idCategoria
-                WHERE 
-                    a.fechaInicio BETWEEN ? AND ?
-            ";
+            SELECT 
+                a.fechaInicio,
+                es.nombreEstado AS estado
+            FROM 
+                actividades a
+            JOIN 
+                estadoActividad es ON a.idEstado = es.idEstado
+            JOIN 
+                categoriasactividades c ON a.idCategoria = c.idCategoria
+            WHERE 
+                a.fechaInicio BETWEEN ? AND ?
+        ";
 
             $params = [$fechaInicio, $fechaFin];
             $types = "ss";
@@ -405,28 +402,15 @@ class modeloActividad
                 $types .= "i";
             }
 
-            $query .= "
-                GROUP BY 
-                    es.nombreEstado, periodo, orden
-                ORDER BY 
-                    orden, es.nombreEstado
-            ";
+            $query .= " ORDER BY a.fechaInicio ASC";
 
             $stmt = $this->db->getConnection()->prepare($query);
             if (!$stmt) {
                 throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
             }
-
             $stmt->bind_param($types, ...$params);
             $stmt->execute();
             $result = $stmt->get_result();
-
-            $datos = [];
-            while ($row = $result->fetch_assoc()) {
-                $datos[] = $row;
-            }
-
-            $stmt->close();
 
             // Mapeo de nombres de estado de BD a lo que espera la vista
             $mapeoEstados = [
@@ -438,9 +422,31 @@ class modeloActividad
                 'En progreso' => 'En progreso'
             ];
 
+            $meses = [
+                'January' => 'Enero',
+                'February' => 'Febrero',
+                'March' => 'Marzo',
+                'April' => 'Abril',
+                'May' => 'Mayo',
+                'June' => 'Junio',
+                'July' => 'Julio',
+                'August' => 'Agosto',
+                'September' => 'Septiembre',
+                'October' => 'Octubre',
+                'November' => 'Noviembre',
+                'December' => 'Diciembre'
+            ];
+
             $periodos = [];
-            foreach ($datos as $dato) {
-                $periodo = $dato['periodo'];
+            while ($row = $result->fetch_assoc()) {
+                $fecha = new DateTime($row['fechaInicio']);
+                $mes = $fecha->format('F');
+                $anio = $fecha->format('Y');
+                $dia = (int)$fecha->format('j');
+                $semanaMes = ceil($dia / 7);
+                $mesEsp = $meses[$mes] ?? $mes;
+                $periodo = "Semana $semanaMes de $mesEsp $anio";
+                $orden = (int)$anio * 10000 + (int)$fecha->format('m') * 100 + $semanaMes;
 
                 if (!isset($periodos[$periodo])) {
                     $periodos[$periodo] = [
@@ -450,24 +456,28 @@ class modeloActividad
                         'En progreso' => 0,
                         'Por iniciar' => 0,
                         'En retraso' => 0,
-                        'total' => 0
+                        'total' => 0,
+                        'orden' => $orden
                     ];
                 }
 
-                $estadoVista = $mapeoEstados[$dato['estado']] ?? null;
-
+                $estadoVista = $mapeoEstados[$row['estado']] ?? null;
                 if ($estadoVista && isset($periodos[$periodo][$estadoVista])) {
-                    $periodos[$periodo][$estadoVista] = (int) $dato['cantidad'];
-                    $periodos[$periodo]['total'] += (int) $dato['cantidad'];
+                    $periodos[$periodo][$estadoVista]++;
+                    $periodos[$periodo]['total']++;
                 }
             }
+
+            // Ordenar por el campo 'orden'
+            usort($periodos, function ($a, $b) {
+                return ($a['orden'] ?? 0) <=> ($b['orden'] ?? 0);
+            });
 
             return array_values($periodos);
         } catch (Exception $e) {
             throw new Exception("Error al obtener estadísticas semanales/mensuales: " . $e->getMessage());
         }
     }
-
 
     public function actualizarEstadosActividades()
     {
@@ -663,29 +673,30 @@ class modeloActividad
     {
         try {
             $query = "
-            SELECT 
-                a.idActividad,
-                a.nombreActividad,
-                a.descripcionActividad,
-                a.fechaInicio,
-                a.fechaCulminacion,
-                a.idEmpleado,           -- <--- AGREGA ESTO
-                a.idCategoria,          -- <--- Y ESTO
-                e.nombres AS nombreEmpleado,
-                es.nombreEstado AS estadoActividad,
-                c.nombreCategoria AS categoriaActividad,
-                a.descripcionCancelacion,
-                a.descripcionCulminacion,
-                c.idDepartamento
-            FROM 
-                actividades a
-            JOIN 
-                empleados e ON a.idEmpleado = e.idEmpleado
-            JOIN 
-                estadoActividad es ON a.idEstado = es.idEstado
-            JOIN 
-                categoriasactividades c ON a.idCategoria = c.idCategoria
-            WHERE 1=1
+        SELECT 
+            a.idActividad,
+            a.nombreActividad,
+            a.descripcionActividad,
+            a.fechaInicio,
+            a.fechaCulminacion,
+            a.idEmpleado,
+            a.idCategoria,
+            a.fechaCreacion, -- NUEVO CAMPO
+            e.nombres AS nombreEmpleado,
+            es.nombreEstado AS estadoActividad,
+            c.nombreCategoria AS categoriaActividad,
+            a.descripcionCancelacion,
+            a.descripcionCulminacion,
+            c.idDepartamento
+        FROM 
+            actividades a
+        JOIN 
+            empleados e ON a.idEmpleado = e.idEmpleado
+        JOIN 
+            estadoActividad es ON a.idEstado = es.idEstado
+        JOIN 
+            categoriasactividades c ON a.idCategoria = c.idCategoria
+        WHERE 1=1
         ";
 
             $conditions = [];
@@ -727,7 +738,8 @@ class modeloActividad
                 $query .= " AND " . implode(" AND ", $conditions);
             }
 
-            $query .= " ORDER BY a.fechaInicio DESC";
+            // ORDENAR POR FECHA DE CREACIÓN DESCENDENTE
+            $query .= " ORDER BY a.fechaCreacion DESC";
 
             $stmt = $this->db->getConnection()->prepare($query);
 
@@ -752,7 +764,6 @@ class modeloActividad
             throw new Exception("Error al obtener actividades filtradas: " . $e->getMessage());
         }
     }
-
     public function obtenerTodasCategorias()
     {
         try {
@@ -935,25 +946,25 @@ class modeloActividad
     {
         try {
             $query = "
-            SELECT 
-                a.idActividad,
-                a.nombreActividad,
-                a.descripcionActividad,
-                a.fechaInicio,
-                a.fechaCulminacion,
-                CONCAT(e.nombres, ' ', e.apellidos) as nombreEmpleado,
-                es.nombreEstado,
-                c.nombreCategoria,
-                c.idDepartamento
-            FROM 
-                actividades a
-            JOIN 
-                empleados e ON a.idEmpleado = e.idEmpleado
-            JOIN 
-                estadoActividad es ON a.idEstado = es.idEstado
-            JOIN 
-                categoriasactividades c ON a.idCategoria = c.idCategoria
-            ";
+        SELECT 
+            a.idActividad,
+            a.nombreActividad,
+            a.descripcionActividad,
+            a.fechaInicio,
+            a.fechaCulminacion,
+            CONCAT(e.nombres, ' ', e.apellidos) as nombreEmpleado,
+            es.nombreEstado,
+            c.nombreCategoria,
+            c.idDepartamento
+        FROM 
+            actividades a
+        JOIN 
+            empleados e ON a.idEmpleado = e.idEmpleado
+        JOIN 
+            estadoActividad es ON a.idEstado = es.idEstado
+        JOIN 
+            categoriasactividades c ON a.idCategoria = c.idCategoria
+        ";
 
             $conditions = [];
             $params = [];
@@ -986,6 +997,9 @@ class modeloActividad
 
             $eventos = [];
             while ($row = $result->fetch_assoc()) {
+                // Obtener archivos adjuntos para la actividad
+                $archivosAdjuntos = $this->obtenerArchivosPorActividad($row['idActividad']);
+
                 // Evento solo en la fecha de inicio
                 $eventos[] = [
                     'title' => $row['nombreActividad'] . ' (Inicio)',
@@ -995,6 +1009,7 @@ class modeloActividad
                         'empleado' => $row['nombreEmpleado'],
                         'categoria' => $row['nombreCategoria'],
                         'description' => $row['descripcionActividad'],
+                        'archivosAdjuntos' => $archivosAdjuntos
                     ],
                 ];
                 // Si la fecha de fin es diferente a la de inicio, agrega evento en la fecha de fin
@@ -1010,6 +1025,7 @@ class modeloActividad
                             'empleado' => $row['nombreEmpleado'],
                             'categoria' => $row['nombreCategoria'],
                             'description' => $row['descripcionActividad'],
+                            'archivosAdjuntos' => $archivosAdjuntos
                         ],
                     ];
                 }
@@ -1046,24 +1062,22 @@ class modeloActividad
     public function obtenerArchivosPorActividad($idActividad)
     {
         try {
-            $stmt = $this->db->getConnection()->prepare("
-            SELECT * FROM archivosActividad 
-            WHERE idActividad = ?
-            ORDER BY fechaSubida DESC
-        ");
-
+            $sql = "SELECT nombreArchivo, rutaArchivo FROM archivosactividad WHERE idActividad = ?";
+            $stmt = $this->db->getConnection()->prepare($sql);
+            if (!$stmt) {
+                throw new Exception("Error al preparar la consulta: " . $this->db->getConnection()->error);
+            }
             $stmt->bind_param("i", $idActividad);
             $stmt->execute();
             $result = $stmt->get_result();
-
             $archivos = [];
             while ($row = $result->fetch_assoc()) {
                 $archivos[] = $row;
             }
-
+            $stmt->close();
             return $archivos;
         } catch (Exception $e) {
-            throw new Exception("Error al obtener archivos: " . $e->getMessage());
+            return [];
         }
     }
 
@@ -1100,5 +1114,23 @@ class modeloActividad
     {
         return $this->db->getConnection()->insert_id;
     }
-   
+
+    public function actividadDuplicada($nombreActividad, $fechaInicio, $idEmpleado, $idCategoria)
+    {
+        try {
+            $stmt = $this->db->getConnection()->prepare("
+            SELECT COUNT(*) as total 
+            FROM actividades 
+            WHERE nombreActividad = ? AND fechaInicio = ? AND idEmpleado = ? AND idCategoria = ?
+        ");
+            $stmt->bind_param("ssii", $nombreActividad, $fechaInicio, $idEmpleado, $idCategoria);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_assoc();
+            $stmt->close();
+            return $row['total'] > 0;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
 }

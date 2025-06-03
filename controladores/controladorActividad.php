@@ -15,23 +15,23 @@ class controladorActividad
      */
 
 
-     public function obtenerDetallesActividad($idActividad)
-{
-    try {
-        // Obtener los detalles básicos de la actividad
-        $detalles = $this->modelo->obtenerDetallesActividad($idActividad);
-        
-        // Obtener los archivos adjuntos
-        $archivos = $this->modelo->obtenerArchivosPorActividad($idActividad);
-        
-        // Agregar los archivos a los detalles
-        $detalles['archivosAdjuntos'] = $archivos;
-        
-        return $detalles;
-    } catch (Exception $e) {
-        throw new Exception("Error al obtener los detalles de la actividad: " . $e->getMessage());
+    public function obtenerDetallesActividad($idActividad)
+    {
+        try {
+            // Obtener los detalles básicos de la actividad
+            $detalles = $this->modelo->obtenerDetallesActividad($idActividad);
+
+            // Obtener los archivos adjuntos
+            $archivos = $this->modelo->obtenerArchivosPorActividad($idActividad);
+
+            // Agregar los archivos a los detalles
+            $detalles['archivosAdjuntos'] = $archivos;
+
+            return $detalles;
+        } catch (Exception $e) {
+            throw new Exception("Error al obtener los detalles de la actividad: " . $e->getMessage());
+        }
     }
-}
 
     public function obtenerDatosGraficaSemanalMensual($fechaInicio, $fechaFin, $idDepartamento = null)
     {
@@ -51,7 +51,13 @@ class controladorActividad
         }
     }
 
-    public function manejarInsercionActividad() {
+    public function obtenerArchivosPorActividad($idActividad)
+    {
+        return $this->modelo->obtenerArchivosPorActividad($idActividad);
+    }
+
+    public function manejarInsercionActividad()
+    {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 // Obtener datos del formulario
@@ -61,7 +67,7 @@ class controladorActividad
                 $fechaCulminacion = $_POST['fechaCulminacion'];
                 $idEmpleado = (int)$_POST['idEmpleado'];
                 $idCategoria = (int)$_POST['idCategoria'];
-    
+
                 // Validaciones básicas
                 if (empty($nombreActividad) || empty($descripcionActividad) || empty($fechaInicio) || empty($fechaCulminacion)) {
                     throw new Exception("Todos los campos son obligatorios");
@@ -74,19 +80,24 @@ class controladorActividad
                 if (strtotime($fechaCulminacion) < strtotime($fechaInicio)) {
                     throw new Exception("La fecha de culminación no puede ser anterior a la fecha de inicio");
                 }
-    
+
+                // Validar duplicidad (ahora incluye categoría)
+                if ($this->modelo->actividadDuplicada($nombreActividad, $fechaInicio, $idEmpleado, $idCategoria)) {
+                    throw new Exception("Ya existe una actividad con el mismo nombre, empleado, fecha de inicio y categoría.");
+                }
+
                 // Validar límite de actividades
                 $limite = $this->modelo->obtenerLimiteActividadesPorEmpleado($idEmpleado);
                 $actividadesActuales = $this->modelo->contarActividadesActivasPorEmpleado($idEmpleado);
-    
+
                 $_SESSION['form_data'] = $_POST;
-    
+
                 if ($actividadesActuales >= $limite) {
                     throw new Exception("Este empleado ya tiene el máximo de actividades asignadas ($limite). No se puede asignar más.");
                 }
-    
-                // Insertar la actividad
-                $resultado = $this->modelo->insertarActividad(
+
+                // Insertar la actividad y obtener el ID
+                $idActividad = $this->modelo->insertarActividad(
                     $nombreActividad,
                     $descripcionActividad,
                     $fechaInicio,
@@ -94,22 +105,15 @@ class controladorActividad
                     $idEmpleado,
                     $idCategoria
                 );
-    
-                if ($resultado === true) {
-                    $idActividad = $this->modelo->obtenerUltimoIdInsertado();
-                    
-                    // Procesar archivos adjuntos solo si se subieron
-                    if (isset($_FILES['archivosAdjuntos']) && !empty($_FILES['archivosAdjuntos']['name'][0])) {
-                        $this->procesarArchivosAdjuntos($idActividad);
-                    }
-                    
-                    unset($_SESSION['form_data']);
-                    header('Location: ../vistas/verActividades.php?mensaje=Actividad registrada exitosamente');
-                    exit();
-                } else {
-                    throw new Exception("Error al insertar la actividad en la base de datos");
+
+                // Procesar archivos adjuntos solo si se subieron
+                if ($idActividad && isset($_FILES['archivosAdjuntos']) && !empty($_FILES['archivosAdjuntos']['name'][0])) {
+                    $this->procesarArchivosAdjuntos($idActividad);
                 }
-                
+
+                unset($_SESSION['form_data']);
+                header('Location: ../vistas/registrarActividades.php?mensaje=' . urlencode('Actividad registrada exitosamente') . '&idActividad=' . $idActividad);
+                exit();
             } catch (Exception $e) {
                 error_log("Error al insertar actividad: " . $e->getMessage());
                 header('Location: ../vistas/registrarActividades.php?error=' . urlencode($e->getMessage()));
@@ -383,6 +387,19 @@ class controladorActividad
                                 exit();
                             }
                             break;
+
+                        case 'verificarDuplicadoActividad':
+                            $nombreActividad = $_GET['nombreActividad'] ?? '';
+                            $fechaInicio = $_GET['fechaInicio'] ?? '';
+                            $idEmpleado = $_GET['idEmpleado'] ?? '';
+                            $idCategoria = $_GET['idCategoria'] ?? '';
+                            if (!$nombreActividad || !$fechaInicio || !$idEmpleado || !$idCategoria) {
+                                echo json_encode(['duplicada' => false, 'error' => 'Datos incompletos']);
+                                exit();
+                            }
+                            $duplicada = $this->modelo->actividadDuplicada($nombreActividad, $fechaInicio, $idEmpleado, $idCategoria);
+                            echo json_encode(['duplicada' => $duplicada]);
+                            exit();
                     }
                 }
             } catch (Exception $e) {
@@ -474,8 +491,6 @@ class controladorActividad
             }
         }
     }
-
-    
 }
 
 // Al final del archivo controladorActividad.php

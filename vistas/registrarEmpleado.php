@@ -62,15 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="w-full max-w-2xl mx-auto">
                 <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
                     <form action="" method="POST" id="employeeForm" class="space-y-4">
-                        <!-- Select para tipo de documento -->
-                        <div class="space-y-2">
-                            <label for="tipoDocumento" class="block text-sm font-medium text-gray-700">Tipo de Documento</label>
-                            <select id="tipoDocumento" name="tipoDocumento" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <option value="cedula">Cédula</option>
-                                <option value="pasaporte">Pasaporte</option>
-                            </select>
-                        </div>
-
                         <!-- Campo de cédula -->
                         <div class="space-y-2">
                             <label for="cedula" class="block text-sm font-medium text-gray-700">Cédula</label>

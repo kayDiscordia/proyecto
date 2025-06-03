@@ -486,15 +486,23 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                     fechaFin = `${lastDay.getFullYear()}-${pad(lastDay.getMonth() + 1)}-${pad(lastDay.getDate())}`;
                 }
 
+                // Formatear fechas a d-m-Y
+                function formatoDMY(fechaStr) {
+                    if (!fechaStr) return '';
+                    const [y, m, d] = fechaStr.split('-');
+                    return `${d}-${m}-${y}`;
+                }
+                const fechaInicioDMY = formatoDMY(fechaInicio);
+                const fechaFinDMY = formatoDMY(fechaFin);
+
                 // Título del reporte
                 pdf.setFontSize(16);
                 pdf.text('Reporte Trimestral de Actividades', 10, 10);
 
                 // Fechas y departamento del reporte
                 pdf.setFontSize(12);
-                pdf.text(`Fecha Inicio: ${fechaInicio}`, 10, 20);
-                pdf.text(`Fecha Fin: ${fechaFin}`, 10, 30);
-                pdf.text(`Departamento: ${departamentoTexto}`, 10, 40);
+                pdf.text(`Fecha Inicio: ${fechaInicioDMY}`, 10, 20);
+                pdf.text(`Fecha Fin: ${fechaFinDMY}`, 10, 30);
 
                 // Resumen
                 pdf.text('Resumen de Actividades por Trimestre', 10, 50);
@@ -511,19 +519,19 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                     columnStyles: {
                         1: {
                             fillColor: [220, 252, 231]
-                        }, // Verde para completadas
+                        },
                         2: {
                             fillColor: [254, 226, 226]
-                        }, // Rojo para canceladas
+                        },
                         3: {
                             fillColor: [254, 249, 195]
-                        }, // Amarillo para en progreso
+                        },
                         4: {
                             fillColor: [219, 234, 254]
-                        }, // Azul para por iniciar
+                        },
                         5: {
                             fillColor: [254, 226, 226]
-                        }, // Rojo claro para en retraso
+                        },
                     },
                 });
 
@@ -542,8 +550,8 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                             a.categoriaActividad,
                             a.descripcionActividad,
                             a.nombreEmpleado,
-                            a.fechaInicio,
-                            a.fechaCulminacion,
+                            formatoDMY(a.fechaInicio),
+                            formatoDMY(a.fechaCulminacion),
                             a.estadoActividad
                         ]),
                         styles: {
@@ -568,7 +576,7 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                     pdf.addImage(chartImage, 'PNG', margin, 20, imgWidth, imgHeight);
                 }
 
-                // Historial de actividades
+                // Historial de actividades (solo nombre de la actividad y empleado)
                 if (Object.keys(historialActividades).length > 0) {
                     pdf.addPage();
                     pdf.text('Historial de Actividades', 10, 10);
@@ -576,7 +584,10 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                     actividades.forEach((a, i) => {
                         const historial = historialActividades[a.idActividad] || [];
                         pdf.setFontSize(11);
-                        pdf.text(`${i + 1}. ${a.descripcionActividad} (${a.nombreEmpleado})`, 10, yHist);
+                        // Solo nombre de la actividad y empleado
+                        pdf.text(`${i + 1}. ${a.nombreActividad} (${a.nombreEmpleado})`, 10, yHist, {
+                            maxWidth: pdf.internal.pageSize.getWidth() - 20
+                        });
                         yHist += 6;
                         if (historial.length > 0) {
                             pdf.autoTable({
@@ -585,7 +596,7 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                                     ["Fecha", "Evento", "Detalles"]
                                 ],
                                 body: historial.map(h => [
-                                    h.fecha,
+                                    formatoDMY(h.fecha),
                                     h.evento,
                                     h.detalles
                                 ]),
@@ -594,6 +605,10 @@ $datosGrafica = $controlador->obtenerDatosGraficaTrimestral($fechaInicio, $fecha
                                 },
                                 headStyles: {
                                     fillColor: [16, 185, 129]
+                                },
+                                margin: {
+                                    left: 10,
+                                    right: 10
                                 }
                             });
                             yHist = pdf.lastAutoTable.finalY + 8;

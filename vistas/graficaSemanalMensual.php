@@ -14,7 +14,7 @@ $datosGrafica = $controlador->obtenerDatosGraficaSemanalMensual($fechaInicio, $f
 
 // Ordenar los datos por el campo 'orden' si existe
 if (is_array($datosGrafica) && !isset($datosGrafica['error'])) {
-    usort($datosGrafica, function($a, $b) {
+    usort($datosGrafica, function ($a, $b) {
         return ($a['orden'] ?? 0) <=> ($b['orden'] ?? 0);
     });
 }
@@ -337,7 +337,7 @@ foreach ($actividades as $actividad) {
 
                 // Ordenar datos por el campo 'orden'
                 const datosOrdenados = [...datosGrafica].sort((a, b) => (a.orden || 0) - (b.orden || 0));
-                
+
                 const labels = datosOrdenados.map(item => item.periodo);
                 const datasets = [{
                         label: 'Completadas',
@@ -431,34 +431,46 @@ foreach ($actividades as $actividad) {
 
             // Configurar botón para exportar el PDF
             document.getElementById('exportarPDF').addEventListener('click', function() {
-                const { jsPDF } = window.jspdf;
+                const {
+                    jsPDF
+                } = window.jspdf;
                 const pdf = new jsPDF();
 
+                // Obtener fechas y formatear a d-m-Y
                 let fechaInicio = document.getElementById('fechaInicio').value;
                 let fechaFin = document.getElementById('fechaFin').value;
-                let departamentoSelect = document.getElementById('idDepartamento');
-                let departamentoTexto = departamentoSelect ? departamentoSelect.options[departamentoSelect.selectedIndex].text : 'Todos';
 
+                function formatoDMY(fechaStr) {
+                    if (!fechaStr) return '';
+                    const [y, m, d] = fechaStr.split('-');
+                    return `${d}-${m}-${y}`;
+                }
+
+                // Si no hay fechas, usar el mes actual
                 if (!fechaInicio || !fechaFin) {
                     const hoy = new Date();
                     const mes = hoy.getMonth();
                     const anio = hoy.getFullYear();
                     const primerDia = new Date(anio, mes, 1);
                     const ultimoDia = new Date(anio, mes + 1, 0);
-
                     const pad = n => n < 10 ? '0' + n : n;
                     fechaInicio = `${primerDia.getFullYear()}-${pad(primerDia.getMonth() + 1)}-${pad(primerDia.getDate())}`;
                     fechaFin = `${ultimoDia.getFullYear()}-${pad(ultimoDia.getMonth() + 1)}-${pad(ultimoDia.getDate())}`;
                 }
 
+                // Formatear fechas a d-m-Y
+                const fechaInicioDMY = formatoDMY(fechaInicio);
+                const fechaFinDMY = formatoDMY(fechaFin);
+
+                // Departamento desde sesión PHP
+                const departamentoTexto = "<?= isset($_SESSION['idDepa']) ? addslashes($_SESSION['nombreDepartamento']) : 'Todos' ?>";
+
                 pdf.setFontSize(16);
                 pdf.text('Reporte de Actividades', 10, 10);
 
                 pdf.setFontSize(12);
-                pdf.text(`Fecha Inicio: ${fechaInicio}`, 10, 20);
-                pdf.text(`Fecha Fin: ${fechaFin}`, 10, 30);
-                pdf.text(`Departamento: ${departamentoTexto || 'Todos'}`, 10, 40);
-
+                pdf.text(`Fecha Inicio: ${fechaInicioDMY}`, 10, 20);
+                pdf.text(`Fecha Fin: ${fechaFinDMY}`, 10, 30);
                 pdf.text('Resumen de Actividades', 10, 50);
 
                 const resumenTable = document.getElementById('resumenTable');
@@ -471,11 +483,21 @@ foreach ($actividades as $actividad) {
                         halign: 'center'
                     },
                     columnStyles: {
-                        1: { fillColor: [220, 252, 231] },
-                        2: { fillColor: [254, 226, 226] },
-                        3: { fillColor: [254, 249, 195] },
-                        4: { fillColor: [219, 234, 254] },
-                        5: { fillColor: [254, 226, 226] },
+                        1: {
+                            fillColor: [220, 252, 231]
+                        },
+                        2: {
+                            fillColor: [254, 226, 226]
+                        },
+                        3: {
+                            fillColor: [254, 249, 195]
+                        },
+                        4: {
+                            fillColor: [219, 234, 254]
+                        },
+                        5: {
+                            fillColor: [254, 226, 226]
+                        },
                     },
                 });
 
@@ -525,7 +547,10 @@ foreach ($actividades as $actividad) {
                     actividades.forEach((a, i) => {
                         const historial = historialActividades[a.idActividad] || [];
                         pdf.setFontSize(11);
-                        pdf.text(`${i + 1}. ${a.descripcionActividad} (${a.nombreEmpleado})`, 10, yHist);
+                        // Mostrar solo el nombre de la actividad y el nombre del empleado
+                        pdf.text(`${i + 1}. ${a.nombreActividad} (${a.nombreEmpleado})`, 10, yHist, {
+                            maxWidth: pdf.internal.pageSize.getWidth() - 20
+                        });
                         yHist += 6;
                         if (historial.length > 0) {
                             pdf.autoTable({
@@ -543,6 +568,10 @@ foreach ($actividades as $actividad) {
                                 },
                                 headStyles: {
                                     fillColor: [16, 185, 129]
+                                },
+                                margin: {
+                                    left: 10,
+                                    right: 10
                                 }
                             });
                             yHist = pdf.lastAutoTable.finalY + 8;
@@ -586,4 +615,5 @@ foreach ($actividades as $actividad) {
         });
     </script>
 </body>
+
 </html>

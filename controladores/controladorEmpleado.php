@@ -36,15 +36,14 @@ class controladorEmpleado
     }
 
 
-    public function obtenerEmpleados()
-    {
-        try {
-            return $this->modelo->obtenerEmpleados();
-        } catch (Exception $e) {
-            return "Error: " . $e->getMessage();
-        }
+    public function obtenerEmpleados($idDepartamento = null, $soloActivos = false)
+{
+    try {
+        return $this->modelo->obtenerEmpleados($idDepartamento, $soloActivos);
+    } catch (Exception $e) {
+        return "Error: " . $e->getMessage();
     }
-
+}
     public function obtenerCargos()
     {
         try {

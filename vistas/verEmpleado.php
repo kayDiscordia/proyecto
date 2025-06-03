@@ -236,7 +236,7 @@ if ($nombreDepartamentoUsuario) {
                                         margin: [0, 0, 10, 0]
                                     },
                                     {
-                                        text: 'Mi Empresa - Reporte de Actividades',
+                                        text: 'Centro de desarrollo para la Calidad Educativa - Reporte de Actividades',
                                         fontSize: 16,
                                         alignment: 'left',
                                         margin: [10, 15, 0, 12]
@@ -247,7 +247,7 @@ if ($nombreDepartamentoUsuario) {
                             doc['footer'] = function(currentPage, pageCount) {
                                 return {
                                     columns: [{
-                                            text: 'Generado por Mi Sistema',
+                                            text: 'Generado por: <?= htmlspecialchars($user['nombres'] . ' ' . $user['apellidos']) ?>',
                                             alignment: 'left',
                                             margin: [40, 0, 0, 0]
                                         },

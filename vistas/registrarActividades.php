@@ -13,7 +13,8 @@ require_once '../controladores/controladorActividad.php';
 require_once '../controladores/controladorEmpleado.php';
 
 $controladorEmpleado = new controladorEmpleado();
-$empleados = $controladorEmpleado->obtenerEmpleados();
+$idDepartamentoSesion = isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : null;
+$empleados = $controladorEmpleado->obtenerEmpleados($idDepartamentoSesion, true);
 $departamentos = $controladorEmpleado->obtenerDepartamentos();
 
 $controlador = new controladorActividad();
@@ -260,6 +261,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             });
         });
+
+        // Validación asíncrona de duplicados
+    document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('activityForm');
+    const nombreInput = document.getElementById('nombreActividad');
+    const fechaInicioInput = document.getElementById('fechaInicio');
+    const empleadoSelect = document.getElementById('idEmpleado');
+    const categoriaSelect = document.getElementById('idCategoria');
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    // Mensaje de error duplicado
+    let errorDuplicado = document.getElementById('errorDuplicadoActividad');
+    if (!errorDuplicado) {
+        errorDuplicado = document.createElement('div');
+        errorDuplicado.className = "bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded relative mb-2";
+        errorDuplicado.style.display = "none";
+        errorDuplicado.id = "errorDuplicadoActividad";
+        errorDuplicado.innerText = "Este empleado ya tiene una actividad igual asignada en esa fecha y categoría.";
+        form.insertBefore(errorDuplicado, form.firstChild);
+    }
+
+    async function verificarDuplicado() {
+        const nombre = nombreInput.value.trim();
+        const fecha = fechaInicioInput.value;
+        const empleado = empleadoSelect.value;
+        const categoria = categoriaSelect.value;
+
+        if (!nombre || !fecha || !empleado || !categoria) {
+            errorDuplicado.style.display = "none";
+            submitBtn.disabled = false;
+            return;
+        }
+
+        try {
+            const params = new URLSearchParams({
+                action: 'verificarDuplicadoActividad',
+                nombreActividad: nombre,
+                fechaInicio: fecha,
+                idEmpleado: empleado,
+                idCategoria: categoria
+            });
+            const response = await fetch(`../controladores/controladorActividad.php?${params.toString()}`);
+            const data = await response.json();
+
+            if (data.duplicada) {
+                errorDuplicado.style.display = "block";
+                submitBtn.disabled = true;
+            } else {
+                errorDuplicado.style.display = "none";
+                submitBtn.disabled = false;
+            }
+        } catch (e) {
+            errorDuplicado.style.display = "none";
+            submitBtn.disabled = false;
+        }
+    }
+
+    nombreInput.addEventListener('blur', verificarDuplicado);
+    fechaInicioInput.addEventListener('change', verificarDuplicado);
+    empleadoSelect.addEventListener('change', verificarDuplicado);
+    categoriaSelect.addEventListener('change', verificarDuplicado);
+});
     </script>
 </body>
 

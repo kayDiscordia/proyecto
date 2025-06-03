@@ -40,7 +40,7 @@ class modeloEmpleado
         }
     }
 
-    public function obtenerEmpleados()
+    public function obtenerEmpleados($idDepartamento = null, $soloActivos = false)
     {
         $query = "SELECT e.idEmpleado, e.nombres, e.apellidos, e.cedula, e.usuarioEmpleado, e.contrasena, 
                      c.nombreCargo AS cargo_nombre, d.nombreDepartamentos AS departamento_nombre,
@@ -49,8 +49,26 @@ class modeloEmpleado
               LEFT JOIN cargos c ON e.idCargo = c.idCargo
               LEFT JOIN departamentos d ON e.idDepartamento = d.idDepartamentos
               LEFT JOIN roles r ON e.idRol = r.idRol
-              LEFT JOIN estadosEmpleados es ON e.idEstado = es.idEstado";
-        $resultado = $this->db->getConnection()->query($query);
+              LEFT JOIN estadosEmpleados es ON e.idEstado = es.idEstado
+              WHERE 1=1";
+        $params = [];
+        $types = "";
+
+        if ($idDepartamento !== null) {
+            $query .= " AND e.idDepartamento = ?";
+            $types .= "i";
+            $params[] = $idDepartamento;
+        }
+        if ($soloActivos) {
+            $query .= " AND es.nombreEstado = 'Activo'";
+        }
+
+        $stmt = $this->db->getConnection()->prepare($query);
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
+        }
+        $stmt->execute();
+        $resultado = $stmt->get_result();
         if ($resultado) {
             return $resultado->fetch_all(MYSQLI_ASSOC);
         } else {
