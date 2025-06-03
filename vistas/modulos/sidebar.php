@@ -126,7 +126,7 @@ $departamento = isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento']
                 <!-- Panel de Control -->
                 <div class="p-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-300 menu-item">
                     <button onclick="location.href='../vistas/home.php'" 
-                            class="w-full text-left px-2 py-1 text-sm hover:bg-gray-100 rounded flex items-center nav-link">
+                            class="w-full font-medium text-left px-2 py-1 text-sm hover:bg-gray-100 rounded flex items-center nav-link">
                         <i class="fa-solid fa-table-columns p-2 text-blue-500"></i>
                         <span class="ml-2">Panel de Control</span>
                     </button>
@@ -243,7 +243,7 @@ $departamento = isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento']
                             class="flex justify-between items-center w-full text-sm font-medium nav-link">
                         <span class="flex items-center">
                             <i class="fa-solid fa-users p-2 text-purple-500"></i>
-                            <span class="ml-2">Gestionar empleados</span>
+                            <span class="ml-2">Gestionar Empleados</span>
                         </span>
                         <svg :class="{'rotate-chevron rotate-180': openMenu === 4}" 
                              class="w-4 h-4 transition-transform duration-300" 
@@ -262,7 +262,7 @@ $departamento = isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento']
                         class="mt-2 space-y-2 overflow-hidden submenu">
                         <button onclick="location.href='../vistas/registrarEmpleado.php'" 
                                 class="w-full text-left px-6 py-1 text-sm hover:bg-gray-100 rounded flex items-center nav-link">
-                            Registrar empleado
+                            Registrar Empleado
                         </button>
                         <button onclick="location.href='../vistas/verEmpleado.php'" 
                                 class="w-full text-left px-6 py-1 text-sm hover:bg-gray-100 rounded flex items-center nav-link">
@@ -297,11 +297,11 @@ $departamento = isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento']
                         class="mt-2 space-y-2 overflow-hidden submenu">
                         <button onclick="location.href='../vistas/graficaSemanalMensual.php'" 
                                 class="w-full text-left px-6 py-1 text-sm hover:bg-gray-100 rounded flex items-center nav-link">
-                            Reportes por semana
+                            Reportes por Semana
                         </button>
                         <button onclick="location.href='../vistas/graficaTrimestral.php'" 
                                 class="w-full text-left px-6 py-1 text-sm hover:bg-gray-100 rounded flex items-center nav-link">
-                            Reportes por trimestre
+                            Reportes por Trimestre
                         </button>
                        
                     </div>

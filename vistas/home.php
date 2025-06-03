@@ -213,6 +213,13 @@ $eventosJson = json_encode($eventosCalendario);
     <script src="JS/sweetalert.js"></script>
 
     <script>
+        function parseFechaLocal(fechaStr) {
+            if (fechaStr && fechaStr.length >= 10) {
+                const partes = fechaStr.substr(0, 10).split('-');
+                return new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+            }
+            return '';
+        }
         document.addEventListener('DOMContentLoaded', function() {
             const eventos = <?php echo $eventosJson; ?>;
 
@@ -228,6 +235,7 @@ $eventosJson = json_encode($eventosCalendario);
                 events: eventos,
                 dayMaxEvents: 3,
                 eventClick: function(info) {
+                    console.log('eventClick disparado', info); // <-- Verifica en consola
                     const event = info.event;
                     const props = event.extendedProps || {};
                     let archivosHtml = '';
@@ -235,35 +243,38 @@ $eventosJson = json_encode($eventosCalendario);
                         archivosHtml += `<div class="mt-2"><strong>Archivos Adjuntos:</strong><ul style="margin-top:5px;">`;
                         props.archivosAdjuntos.forEach(archivo => {
                             archivosHtml += `
-                        <li style="margin-bottom:4px;">
-                            <a href="../archivos/${archivo.rutaArchivo}" target="_blank" style="color:#2563eb;text-decoration:underline;">
-                                <i class="fas fa-file-download"></i> ${archivo.nombreArchivo}
-                            </a>
-                            <a href="../archivos/${archivo.rutaArchivo}" download="${archivo.nombreArchivo}" style="margin-left:8px;color:#10b981;">
-                                <i class="fas fa-download"></i> Descargar
-                            </a>
-                        </li>
-                    `;
+                <li style="margin-bottom:4px;">
+                    <a href="../archivos/${archivo.rutaArchivo}" target="_blank" style="color:#2563eb;text-decoration:underline;">
+                        <i class="fas fa-file-download"></i> ${archivo.nombreArchivo}
+                    </a>
+                    <a href="../archivos/${archivo.rutaArchivo}" download="${archivo.nombreArchivo}" style="margin-left:8px;color:#10b981;">
+                        <i class="fas fa-download"></i> Descargar
+                    </a>
+                </li>
+            `;
                         });
                         archivosHtml += `</ul></div>`;
                     }
                     Swal.fire({
                         title: event.title,
                         html: `
-                    <div class="text-left">
-                        <p><strong>Descripción:</strong> ${props.description || ''}</p>
-                        <p><strong>Fecha Inicio:</strong> ${event.start ? event.start.toLocaleDateString() : ''}</p>
-                        ${event.end ? `<p><strong>Fecha Culminación:</strong> ${event.end.toLocaleDateString()}</p>` : ''}
-                        <p><strong>Empleado:</strong> ${props.empleado || ''}</p>
-                        <p><strong>Categoría:</strong> ${props.categoria || ''}</p>
-                        <p><strong>Estado:</strong> ${props.estado || ''}</p>
-                        ${props.estado === 'Cancelada' && props.descripcionCancelacion ? `<p><strong>Motivo de Cancelación:</strong> ${props.descripcionCancelacion}</p>` : ''}
-                        ${props.estado === 'Completada' && props.descripcionCulminacion ? `<p><strong>Descripción de Culminación:</strong> ${props.descripcionCulminacion}</p>` : ''}
-                        ${archivosHtml}
-                    </div>
-                `,
+            <div class="text-left">
+                <p><strong>Descripción:</strong> ${props.description || ''}</p>
+                <p><strong>Fecha:</strong> ${event.start ? parseFechaLocal(event.start).toLocaleDateString() : ''}</p>
+                ${event.end ? `<p><strong>Fecha Culminación:</strong> ${parseFechaLocal(event.end).toLocaleDateString()}</p>` : ''}
+                <p><strong>Empleado:</strong> ${props.empleado || ''}</p>
+                <p><strong>Categoría:</strong> ${props.categoria || ''}</p>
+                <p><strong>Estado:</strong> ${props.estado || ''}</p>
+                ${props.estado === 'Cancelada' && props.descripcionCancelacion ? `<p><strong>Motivo de Cancelación:</strong> ${props.descripcionCancelacion}</p>` : ''}
+                ${props.estado === 'Completada' && props.descripcionCulminacion ? `<p><strong>Descripción de Culminación:</strong> ${props.descripcionCulminacion}</p>` : ''}
+                ${archivosHtml}
+            </div>
+        `,
                         width: 600,
-                        confirmButtonText: 'Cerrar'
+                        showCancelButton: true,
+                        confirmButtonText: 'Cerrar',
+                        cancelButtonText: 'Volver',
+                        reverseButtons: true
                     });
                 },
                 dateClick: function(info) {
@@ -318,18 +329,18 @@ $eventosJson = json_encode($eventosCalendario);
                                             Swal.fire({
                                                 title: ev.title,
                                                 html: `
-                                <div class="text-left">
-                                    <p><strong>Descripción:</strong> ${props.description || ''}</p>
-                                    <p><strong>Fecha Inicio:</strong> ${ev.start ? new Date(ev.start).toLocaleDateString() : ''}</p>
-                                    ${ev.end ? `<p><strong>Fecha Culminación:</strong> ${new Date(ev.end).toLocaleDateString()}</p>` : ''}
-                                    <p><strong>Empleado:</strong> ${props.empleado || ''}</p>
-                                    <p><strong>Categoría:</strong> ${props.categoria || ''}</p>
-                                    <p><strong>Estado:</strong> ${props.estado || ''}</p>
-                                    ${props.estado === 'Cancelada' && props.descripcionCancelacion ? `<p><strong>Motivo de Cancelación:</strong> ${props.descripcionCancelacion}</p>` : ''}
-                                    ${props.estado === 'Completada' && props.descripcionCulminacion ? `<p><strong>Descripción de Culminación:</strong> ${props.descripcionCulminacion}</p>` : ''}
-                                    ${archivosHtml}
-                                </div>
-                            `,
+        <div class="text-left">
+            <p><strong>Descripción:</strong> ${props.description || ''}</p><br>
+            <p><strong>Fecha:</strong> ${ev.start ? parseFechaLocal(ev.start).toLocaleDateString() : ''}</p>
+            ${ev.end ? `<p><strong>Fecha Culminación:</strong> ${parseFechaLocal(ev.end).toLocaleDateString()}</p>` : ''}
+            <p><strong>Empleado:</strong> ${props.empleado || ''}</p>
+            <p><strong>Categoría:</strong> ${props.categoria || ''}</p>
+            <p><strong>Estado:</strong> ${props.estado || ''}</p>
+            ${props.estado === 'Cancelada' && props.descripcionCancelacion ? `<p><strong>Motivo de Cancelación:</strong> ${props.descripcionCancelacion}</p>` : ''}
+            ${props.estado === 'Completada' && props.descripcionCulminacion ? `<p><strong>Descripción de Culminación:</strong> ${props.descripcionCulminacion}</p>` : ''}
+            ${archivosHtml}
+        </div>
+    `,
                                                 width: 600,
                                                 showCancelButton: true,
                                                 confirmButtonText: 'Cerrar',
