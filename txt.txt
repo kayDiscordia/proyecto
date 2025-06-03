@@ -1,0 +1,97 @@
+npx @tailwindcss/cli -i vistas/CSS/input.css -o vistas/CSS/output.css --watch (NO BORRAR)
+
+
+14/4/2025 Santiago empieza a usar este txt pitero como si fueran las notas de un parche y para anotar las actualizaciones
+te agradezco que hagas lo mismo 
+
+PD: abre el txt con visual para evitar morir de cancer
+
+-Se corrigio el error que hacia que las actividades se movieran al cambiarle el estado
+-Se modifico el login para tomar los datos usando una funcion de la clase login
+-Se modifico el sidebar para que use el idRol para cargar los modulos
+-Tambien se añadio que el login tome el valor de idDepartamento
+-Se cambio en el registrar actividades el select de los departamentos, ahora toma directamente el que este cargado en la sesion
+[La parte mala es que no se como furula el obtenerCategorias de actividad asi que jodi eso]
+
+-Se cambio en el registrar empleado el select de los departamentos, ahora toma directamente el q esta cargado en sesion
+[ese no explotó asi q victoria royale]
+
+-cambie tambien un par de cosas en los controladores de sesion y el modelo de actividades pero son estables asi q chill
+
+17/4/2025 Santiago agarra la pala nuevamente
+
+-Corregido el registrar actividad, ahora si funcion de cargar las categorias
+-agregar metodo de obtener actividades por empleado en el controlador y el modelo
+-verActividades ahora tiene un filtro y un descargar pdfs
+-el sidebar ahora muestre parcialmente una funcion para los empleados no-admins
+
+18/4/2025 Santiago tarda hora y media en encontrar una palabra mal escrita
+
+-Agregado el boton de editar y ver mas detalles a la vista de verActividades
+
+19/4/2025
+
+-se agrego un calendario y contadores de las actividades por estado en el panel de control
+-se agrego grafica trimestral en la seccion de reportes 
+-se aplico las validaciones al archivo modificar empleados
+
+26/04/2025
+
+-cambiado el color del panel de contro para que concuerden con todos los demas colores(rojo,amarillo,verde) LISTO
+-reorganizado verreportes(orientacion de quien son las actividades) LISTO
+-ya ser mas especifico en el panel de control(ser mas especificos con los indicadores) LISTO
+-asignar actividades solo a los empleados activos LISTO
+
+26/04/2025 Santiago es tonto y no le furula el git
+
+AAAAAAAAAAAAAAAAAAAA
+
+28/4/2025
+
+-Se agregaron los estados de Por Inciar y Retraso
+-El sistema automaticamente asigna estos dos estados basado en la fecha de culminacion e inicio
+-Se agrego localmente una tarea programada para que realice el cambio cada dia a las 8 PM. (Tambien lo hace al usar el comando)
+
+29/4/2025 La pala se alza
+
+-Ahora el modal de detalles muestra la descripcion del estado
+-Ahora culminar y cancelar usan un modal bonito
+-Intente cambiar en el modal de detalles el Descripcion estado pero eso causa que el html se cierre (??????)
+
+2/5/2025 La venganza de la pala
+
+-Se agrego la tabla historialactividad
+-ahora se registran los cambios que se le hagan a la actividad mediante el modal de editar (se registran muy troglodita pero es algo)
+-se agrego un boton para acceder al historial desde verActividades
+
+6/2/2025 La pala contada
+
+-El historial registra los eventos de la creacion de la actividad, las ediciones que se le hagan desde el editarActividad
+y cuando se cancela o culmina la actividad. (Al hacer esto coloca además la descripcion de la actividad)
+-la tabla del historial ahora se ve un poco mejor.
+
+9/5/2025
+
+-Mejora significativa al aspecto del historial de actividades
+-Se agrego la columna de nombreActividades en la tabla actividades
+-Se agrego limite de actividades basada en el cargo del empleado
+-se agrego una forma de visualizar si la actividad se cumplio o cancelo antes de que llegara a el estado "En progreso"
+
+
+11/5/2025 
+-:skull: muchos 
+
+30/5/2025
+
+-Este txt ha dejado de revisar el progreso real del proyecto desde hace mas o menos 2 semanas
+Para vizualizar los verdaderos avances completos revisar commits de github
+
+-agregar datatable
+-todas las librerias en local finalmente
+-exportar pdf hecho ahora con pdfmaker y otras librerias
+-validacion en todas las vistas nuevas agregadas
+
+31/05/2025
+
+-Validaciones de fecha
+-reiniciar limite de actividades al pasar el dia
