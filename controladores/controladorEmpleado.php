@@ -37,13 +37,29 @@ class controladorEmpleado
 
 
     public function obtenerEmpleados($idDepartamento = null, $soloActivos = false)
-{
-    try {
-        return $this->modelo->obtenerEmpleados($idDepartamento, $soloActivos);
-    } catch (Exception $e) {
-        return "Error: " . $e->getMessage();
+    {
+        try {
+            return $this->modelo->obtenerEmpleados($idDepartamento, $soloActivos);
+        } catch (Exception $e) {
+            return "Error: " . $e->getMessage();
+        }
     }
-}
+
+    public function verificarUsuarioAjax()
+    {
+        if (isset($_POST['usuarioEmpleado'])) {
+            $usuario = $_POST['usuarioEmpleado'];
+            try {
+                $existe = $this->modelo->verificarUsuario($usuario);
+                echo json_encode(['existe' => $existe]);
+            } catch (Exception $e) {
+                echo json_encode(['error' => 'Error: ' . $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['error' => 'No se proporcionó un usuario.']);
+        }
+    }
+
     public function obtenerCargos()
     {
         try {

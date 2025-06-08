@@ -194,14 +194,6 @@ foreach ($actividades as $actividad) {
             <div class="bg-white p-6 rounded-lg shadow mb-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-medium text-gray-900">Resumen de Actividades</h3>
-                    <div class="tab-container">
-                        <button @click="tipoGrafica = 'semanal'" :class="{ 'active': tipoGrafica === 'semanal' }" class="tab-button">
-                            <i class="fas fa-calendar-week mr-1"></i> Semanal
-                        </button>
-                        <button @click="tipoGrafica = 'mensual'" :class="{ 'active': tipoGrafica === 'mensual' }" class="tab-button">
-                            <i class="fas fa-calendar-alt mr-1"></i> Mensual
-                        </button>
-                    </div>
                 </div>
 
                 <?php if (isset($datosGrafica['error'])): ?>
@@ -230,31 +222,31 @@ foreach ($actividades as $actividad) {
                                     <tr>
                                         <td class="font-medium"><?= htmlspecialchars($periodo['periodo'] ?? '') ?></td>
                                         <td>
-                                            <span class="badge badge-completed">
+                                            <span class="badge" style="background-color:#10B981; color:white;">
                                                 <i class="fas fa-check-circle mr-1"></i>
                                                 <?= htmlspecialchars($periodo['Completada'] ?? 0) ?>
                                             </span>
                                         </td>
                                         <td>
-                                            <span class="badge badge-cancelled">
+                                            <span class="badge" style="background-color:#EF4444; color:white;">
                                                 <i class="fas fa-times-circle mr-1"></i>
                                                 <?= htmlspecialchars($periodo['Cancelada'] ?? 0) ?>
                                             </span>
                                         </td>
                                         <td>
-                                            <span class="badge badge-progress">
+                                            <span class="badge" style="background-color:#F97316; color:white;">
                                                 <i class="fas fa-spinner mr-1"></i>
                                                 <?= htmlspecialchars($periodo['En progreso'] ?? 0) ?>
                                             </span>
                                         </td>
                                         <td>
-                                            <span class="badge badge-init">
+                                            <span class="badge" style="background-color:#FACC15; color:#92400e;">
                                                 <i class="fas fa-hourglass-start mr-1"></i>
                                                 <?= htmlspecialchars($periodo['Por iniciar'] ?? 0) ?>
                                             </span>
                                         </td>
                                         <td>
-                                            <span class="badge badge-delay">
+                                            <span class="badge" style="background-color:#1D4ED8; color:white;">
                                                 <i class="fas fa-exclamation-triangle mr-1"></i>
                                                 <?= htmlspecialchars($periodo['En retraso'] ?? 0) ?>
                                             </span>
@@ -340,38 +332,38 @@ foreach ($actividades as $actividad) {
 
                 const labels = datosOrdenados.map(item => item.periodo);
                 const datasets = [{
-                        label: 'Completadas',
-                        data: datosOrdenados.map(item => item.Completada || 0),
-                        backgroundColor: '#10B981',
-                        borderColor: '#047857',
+                        label: 'Por Iniciar',
+                        data: datosOrdenados.map(item => item['Por iniciar'] || 0),
+                        backgroundColor: '#FACC15',
+                        borderColor: '#FACC15',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Retraso',
+                        data: datosOrdenados.map(item => item['En retraso'] || 0),
+                        backgroundColor: '#1D4ED8',
+                        borderColor: '#1D4ED8',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'En Progreso',
+                        data: datosOrdenados.map(item => item['En progreso'] || 0),
+                        backgroundColor: '#F97316',
+                        borderColor: '#F97316',
                         borderWidth: 1
                     },
                     {
                         label: 'Canceladas',
                         data: datosOrdenados.map(item => item.Cancelada || 0),
                         backgroundColor: '#EF4444',
-                        borderColor: '#B91C1C',
+                        borderColor: '#EF4444',
                         borderWidth: 1
                     },
                     {
-                        label: 'En Progreso',
-                        data: datosOrdenados.map(item => item['En progreso'] || 0),
-                        backgroundColor: '#F59E0B',
-                        borderColor: '#B45309',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Por Iniciar',
-                        data: datosOrdenados.map(item => item['Por iniciar'] || 0),
-                        backgroundColor: '#3B82F6',
-                        borderColor: '#1E40AF',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'En Retraso',
-                        data: datosOrdenados.map(item => item['En retraso'] || 0),
-                        backgroundColor: '#F87171',
-                        borderColor: '#B91C1C',
+                        label: 'Completadas',
+                        data: datosOrdenados.map(item => item.Completada || 0),
+                        backgroundColor: '#10B981',
+                        borderColor: '#10B981',
                         borderWidth: 1
                     }
                 ];
@@ -484,20 +476,25 @@ foreach ($actividades as $actividad) {
                     },
                     columnStyles: {
                         1: {
-                            fillColor: [220, 252, 231]
-                        },
+                            fillColor: [16, 185, 129],
+                            textColor: 255
+                        }, // Completadas
                         2: {
-                            fillColor: [254, 226, 226]
-                        },
+                            fillColor: [239, 68, 68],
+                            textColor: 255
+                        }, // Canceladas
                         3: {
-                            fillColor: [254, 249, 195]
-                        },
+                            fillColor: [249, 115, 22],
+                            textColor: 255
+                        }, // En Progreso
                         4: {
-                            fillColor: [219, 234, 254]
-                        },
+                            fillColor: [250, 204, 21],
+                            textColor: [146, 64, 14]
+                        }, // Por Iniciar
                         5: {
-                            fillColor: [254, 226, 226]
-                        },
+                            fillColor: [29, 78, 216],
+                            textColor: 255
+                        }, // En Retraso
                     },
                 });
 

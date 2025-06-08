@@ -81,6 +81,11 @@ class controladorActividad
                     throw new Exception("La fecha de culminación no puede ser anterior a la fecha de inicio");
                 }
 
+                // Validar duplicidad (ahora incluye categoría)
+                if ($this->modelo->actividadDuplicada($nombreActividad, $fechaInicio, $idEmpleado, $idCategoria)) {
+                    throw new Exception("Ya existe una actividad con el mismo nombre, empleado, fecha de inicio y categoría.");
+                }
+
                 // Validar límite de actividades
                 $limite = $this->modelo->obtenerLimiteActividadesPorEmpleado($idEmpleado);
                 $actividadesActuales = $this->modelo->contarActividadesActivasPorEmpleado($idEmpleado);
@@ -108,7 +113,6 @@ class controladorActividad
 
                 unset($_SESSION['form_data']);
                 header('Location: ../vistas/registrarActividades.php?mensaje=' . urlencode('Actividad registrada exitosamente') . '&idActividad=' . $idActividad);
-                //    header('Location: ../vistas/verActividades.php?mensaje=Actividad registrada exitosamente');
                 exit();
             } catch (Exception $e) {
                 error_log("Error al insertar actividad: " . $e->getMessage());
@@ -191,6 +195,8 @@ class controladorActividad
         }
     }
 
+
+    
     public function obtenerDatosGraficaTrimestral($fechaInicio, $fechaFin, $idDepartamento = null)
     {
         try {
@@ -383,6 +389,19 @@ class controladorActividad
                                 exit();
                             }
                             break;
+
+                        case 'verificarDuplicadoActividad':
+                            $nombreActividad = $_GET['nombreActividad'] ?? '';
+                            $fechaInicio = $_GET['fechaInicio'] ?? '';
+                            $idEmpleado = $_GET['idEmpleado'] ?? '';
+                            $idCategoria = $_GET['idCategoria'] ?? '';
+                            if (!$nombreActividad || !$fechaInicio || !$idEmpleado || !$idCategoria) {
+                                echo json_encode(['duplicada' => false, 'error' => 'Datos incompletos']);
+                                exit();
+                            }
+                            $duplicada = $this->modelo->actividadDuplicada($nombreActividad, $fechaInicio, $idEmpleado, $idCategoria);
+                            echo json_encode(['duplicada' => $duplicada]);
+                            exit();
                     }
                 }
             } catch (Exception $e) {

@@ -14,6 +14,10 @@ if (isset($_SESSION['id'])) {
 
 $controlador = new controladorEmpleado();
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'verificarUsuario') {
+    $controlador->verificarUsuarioAjax();
+    exit();
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'verificarCedula') {
     $controlador->verificarCedulaAjax();
     exit();
@@ -24,7 +28,8 @@ $idDepartamento = isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento
 $cargos = [];
 if ($idDepartamento) {
     $cargos = $controlador->obtenerCargosPorDepartamento($idDepartamento);
-}$departamentos = $controlador->obtenerDepartamentos();
+}
+$departamentos = $controlador->obtenerDepartamentos();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cedula = trim($_POST['cedula']);
@@ -44,9 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die('El apellido debe contener un máximo de 25 caracteres, hasta 3 espacios, y no puede incluir caracteres especiales.');
     }
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -54,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="CSS/output.css">
     <script defer src="JS/alpine.js"></script>
 </head>
+
 <body class="bg-[#E8EEFF]">
     <div class="flex h-screen" x-data="{ isCollapsed: false }">
         <?php include 'modulos/sidebar.php' ?>
@@ -65,11 +73,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Campo de cédula -->
                         <div class="space-y-2">
                             <label for="cedula" class="block text-sm font-medium text-gray-700">Cédula</label>
-                            <input type="text" id="cedula" name="cedula" 
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" 
-                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8)" 
-                                maxlength="8" 
-                                onblur="verificarCedula()" 
+                            <input type="text" id="cedula" name="cedula"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8)"
+                                maxlength="8"
+                                onblur="verificarCedula()"
                                 required>
                             <p id="mensajeError" style="color: red; display: none;"></p>
                         </div>
@@ -77,24 +85,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Campo de nombres  -->
                         <div class="space-y-2">
                             <label for="nombres" class="block text-sm font-medium text-gray-700">Nombres</label>
-                            <input type="text" id="nombres" name="nombres" 
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" 
-                                oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '').replace(/\s+/g, ' ').slice(0, 25); this.value = this.value.replace(/(^|\s)\S/g, l => l.toUpperCase())" 
-                                onblur="capitalizeFirstLetters(this)" 
-                                pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(\s[A-Za-zÁÉÍÓÚáéíóúÑñ]+){0,3}$" 
-                                title="Debe contener un máximo de 25 caracteres, sin caracteres especiales, y hasta 3 espacios." 
+                            <input type="text" id="nombres" name="nombres"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '').replace(/\s+/g, ' ').slice(0, 25); this.value = this.value.replace(/(^|\s)\S/g, l => l.toUpperCase())"
+                                onblur="capitalizeFirstLetters(this)"
+                                pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(\s[A-Za-zÁÉÍÓÚáéíóúÑñ]+){0,3}$"
+                                title="Debe contener un máximo de 25 caracteres, sin caracteres especiales, y hasta 3 espacios."
                                 required>
                         </div>
 
                         <!-- Campo de apellidos  -->
                         <div class="space-y-2">
                             <label for="apellidos" class="block text-sm font-medium text-gray-700">Apellidos</label>
-                            <input type="text" id="apellidos" name="apellidos" 
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" 
-                                oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '').replace(/\s+/g, ' ').slice(0, 25); this.value = this.value.replace(/(^|\s)\S/g, l => l.toUpperCase())" 
-                                onblur="capitalizeFirstLetters(this)" 
-                                pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(\s[A-Za-zÁÉÍÓÚáéíóúÑñ]+){0,3}$" 
-                                title="Debe contener un máximo de 25 caracteres, sin caracteres especiales, y hasta 3 espacios." 
+                            <input type="text" id="apellidos" name="apellidos"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '').replace(/\s+/g, ' ').slice(0, 25); this.value = this.value.replace(/(^|\s)\S/g, l => l.toUpperCase())"
+                                onblur="capitalizeFirstLetters(this)"
+                                pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(\s[A-Za-zÁÉÍÓÚáéíóúÑñ]+){0,3}$"
+                                title="Debe contener un máximo de 25 caracteres, sin caracteres especiales, y hasta 3 espacios."
                                 required>
                         </div>
 
@@ -108,21 +116,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <!-- Campos de departamento -->                
+                        <!-- Campos de departamento -->
                         <div class="space-y-2">
                             <label for="departamento" class="block text-sm font-medium text-gray-700">Departamento</label>
-                            <input type="text" id="departamento" name="departamento" 
-                                value="<?php echo isset($_SESSION['idDepartamento']) ? htmlspecialchars($departamentos[array_search($_SESSION['idDepartamento'], array_column($departamentos, 'idDepartamentos'))]['nombreDepartamentos']) : 'No asignado'; ?>" 
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" 
+                            <input type="text" id="departamento" name="departamento"
+                                value="<?php echo isset($_SESSION['idDepartamento']) ? htmlspecialchars($departamentos[array_search($_SESSION['idDepartamento'], array_column($departamentos, 'idDepartamentos'))]['nombreDepartamentos']) : 'No asignado'; ?>"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                                 readonly>
                         </div>
                         <!-- Esto es lo que realmente esta enviando el valor del campo -->
-                            <input type="hidden" id="idDepartamento" name="idDepartamento" 
-                                value="<?php echo isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : ''; ?>">
+                        <input type="hidden" id="idDepartamento" name="idDepartamento"
+                            value="<?php echo isset($_SESSION['idDepartamento']) ? $_SESSION['idDepartamento'] : ''; ?>">
                         <!-- Campos de usuario y contraseña -->
                         <div class="space-y-2">
                             <label for="usuarioEmpleado" class="block text-sm font-medium text-gray-700">Usuario de acceso para el empleado</label>
-                            <input type="text" id="usuarioEmpleado" name="usuarioEmpleado" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            <input type="text" id="usuarioEmpleado" name="usuarioEmpleado"
+                                required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                oninput="verificarUsuario()">
+                            <p id="mensajeUsuarioError" style="color: red; display: none;"></p>
                         </div>
 
                         <div class="space-y-2">
@@ -144,62 +156,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </main>
     </div>
     <script>
-    // capitalizar automáticamente
-    function capitalizeFirstLetters(input) {
-        let words = input.value.split(' ');
-        for (let i = 0; i < words.length; i++) {
-            if (words[i].length > 0) {
-                words[i] = words[i][0].toUpperCase() + words[i].substring(1).toLowerCase();
-            }
+        document.getElementById('usuarioEmpleado').addEventListener('input', verificarUsuario);
+
+        function verificarUsuario() {
+            const usuario = document.getElementById('usuarioEmpleado').value.trim();
+            const formData = new FormData();
+            formData.append('usuarioEmpleado', usuario);
+            formData.append('accion', 'verificarUsuario');
+
+            fetch('', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const mensajeUsuarioError = document.getElementById('mensajeUsuarioError');
+                    const btnRegistrar = document.getElementById('btnRegistrar');
+
+                    if (data.existe) {
+                        mensajeUsuarioError.style.display = 'block';
+                        mensajeUsuarioError.textContent = 'Ese nombre de usuario ya está ocupado.';
+                        btnRegistrar.disabled = true;
+                    } else {
+                        mensajeUsuarioError.style.display = 'none';
+                        btnRegistrar.disabled = false;
+                    }
+                })
+                .catch(error => console.error('Error en la solicitud:', error));
         }
-        input.value = words.join(' ');
-    }
+        // capitalizar automáticamente
+        function capitalizeFirstLetters(input) {
+            let words = input.value.split(' ');
+            for (let i = 0; i < words.length; i++) {
+                if (words[i].length > 0) {
+                    words[i] = words[i][0].toUpperCase() + words[i].substring(1).toLowerCase();
+                }
+            }
+            input.value = words.join(' ');
+        }
 
-    // verificarCedula 
-    function verificarCedula() {
-        const cedula = document.getElementById('cedula').value;
-        const formData = new FormData();
-        formData.append('cedula', cedula);
-        formData.append('accion', 'verificarCedula');
+        // verificarCedula 
+        function verificarCedula() {
+            const cedula = document.getElementById('cedula').value;
+            const formData = new FormData();
+            formData.append('cedula', cedula);
+            formData.append('accion', 'verificarCedula');
 
-        fetch('', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            const mensajeError = document.getElementById('mensajeError');
-            const btnRegistrar = document.getElementById('btnRegistrar');
+            fetch('', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const mensajeError = document.getElementById('mensajeError');
+                    const btnRegistrar = document.getElementById('btnRegistrar');
 
-            if (data.existe) {
+                    if (data.existe) {
+                        mensajeError.style.display = 'block';
+                        mensajeError.textContent = 'La cédula ya está registrada.';
+                        btnRegistrar.disabled = true;
+                    } else {
+                        mensajeError.style.display = 'none';
+                        btnRegistrar.disabled = false;
+                    }
+                })
+                .catch(error => console.error('Error en la solicitud:', error));
+
+            const cedulaRegex = /^[0-9]+$/;
+            if (!cedulaRegex.test(cedula)) {
                 mensajeError.style.display = 'block';
-                mensajeError.textContent = 'La cédula ya está registrada.';
+                mensajeError.textContent = 'La cédula solo puede contener números.';
                 btnRegistrar.disabled = true;
-            } else {
-                mensajeError.style.display = 'none';
-                btnRegistrar.disabled = false;
+                return;
             }
-        })
-        .catch(error => console.error('Error en la solicitud:', error));
 
-        const cedulaRegex = /^[0-9]+$/;
-        if (!cedulaRegex.test(cedula)) {
-            mensajeError.style.display = 'block';
-            mensajeError.textContent = 'La cédula solo puede contener números.';
-            btnRegistrar.disabled = true;
-            return;
+            if (cedula.length > 8) {
+                mensajeError.style.display = 'block';
+                mensajeError.textContent = 'La cédula no puede tener más de 8 caracteres.';
+                btnRegistrar.disabled = true;
+                return;
+            }
+
+            mensajeError.style.display = 'none';
+            btnRegistrar.disabled = false;
         }
-
-        if (cedula.length > 8) {
-            mensajeError.style.display = 'block';
-            mensajeError.textContent = 'La cédula no puede tener más de 8 caracteres.';
-            btnRegistrar.disabled = true;
-            return;
-        }
-
-        mensajeError.style.display = 'none';
-        btnRegistrar.disabled = false;
-    }
     </script>
 </body>
+
 </html>

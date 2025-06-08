@@ -231,6 +231,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 <?php else: ?>
                     <div class="rounded-lg shadow bg-white" style="max-width: 100%;">
+                        <div class="flex justify-start mb-2">
+                            <a href="verActividades.php" class="inline-flex items-center px-8 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-md text-sm font-medium shadow transition">
+                                <i class="fas fa-eraser mr-2"></i> Limpiar filtro
+                            </a>
+                        </div>
                         <div style="max-height: 420px; overflow-y: auto;">
                             <table id="tablaActividades" class="min-w-full text-xs">
                                 <thead class="bg-gray-100">
@@ -299,11 +304,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                         $actividad['estadoActividad'] !== 'Completada' &&
                                                         $actividad['estadoActividad'] !== 'Cancelada'
                                                     ): ?>
-                                                        <button onclick="mostrarEditar(<?= htmlspecialchars(json_encode($actividad)) ?>)"
-                                                            class="text-yellow-600 hover:text-yellow-900 p-1 rounded-full hover:bg-yellow-50"
-                                                            title="Editar">
-                                                            <i class="fas fa-edit"></i>
-                                                        </button>
+                                                        <?php
+                                                        $esAdmin = (isset($_SESSION['idRol']) && $_SESSION['idRol'] == 1);
+                                                        $esAsignado = (isset($_SESSION['id']) && $_SESSION['id'] == $actividad['idEmpleado']);
+                                                        ?>
+                                                        <?php if ($esAdmin): ?>
+                                                            <button onclick="mostrarEditar(<?= htmlspecialchars(json_encode($actividad)) ?>)"
+                                                                class="text-yellow-600 hover:text-yellow-900 p-1 rounded-full hover:bg-yellow-50"
+                                                                title="Editar">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                        <?php endif; ?>
                                                         <!-- Botón Culminar -->
                                                         <button onclick="mostrarCulminar(<?= htmlspecialchars(json_encode($actividad)) ?>)"
                                                             class="text-green-600 hover:text-green-900 p-1 rounded-full hover:bg-green-50"
@@ -488,26 +499,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 categoriasOptions += `<option value="<?= $categoria['idCategoria'] ?>"><?= htmlspecialchars($categoria['nombreCategoria']) ?></option>`;
             <?php endforeach; ?>
 
+            // Obtener la fecha de hoy en formato yyyy-mm-dd
+            const hoy = new Date();
+            const yyyy = hoy.getFullYear();
+            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoy.getDate()).padStart(2, '0');
+            const fechaHoy = `${yyyy}-${mm}-${dd}`;
+
             Swal.fire({
                 title: `Editar: ${actividad.nombreActividad}`,
                 html: `
-            <form id="formEditarSwal">
-                <label>Descripción:</label>
-                <input type="text" id="editarDescripcion" class="swal2-input" value="${actividad.descripcionActividad || ''}" required>
-                <label>Fecha Inicio:</label>
-                <input type="date" id="editarFechaInicio" class="swal2-input" value="${actividad.fechaInicio || ''}" required>
-                <label>Fecha Culminación:</label>
-                <input type="date" id="editarFechaCulminacion" class="swal2-input" value="${actividad.fechaCulminacion || ''}" required>
-                <label>Empleado:</label>
-                <select id="editarEmpleado" class="swal2-input" required>${empleadosOptions}</select>
-                <label>Categoría:</label>
-                <select id="editarCategoria" class="swal2-input" required>${categoriasOptions}</select>
-            </form>
+        <form id="formEditarSwal">
+            <label>Descripción:</label>
+            <input type="text" id="editarDescripcion" class="swal2-input" value="${actividad.descripcionActividad || ''}" required>
+            <label>Fecha Inicio:</label>
+            <input type="date" id="editarFechaInicio" class="swal2-input" value="${actividad.fechaInicio || ''}" min="${fechaHoy}" required><br>
+            <label>Fecha Culminación:</label>
+            <input type="date" id="editarFechaCulminacion" class="swal2-input" value="${actividad.fechaCulminacion || ''}" required><br>
+            <label>Empleado:</label>
+            <select id="editarEmpleado" class="swal2-input" required>${empleadosOptions}</select>
+            <label>Categoría:</label>
+            <select id="editarCategoria" class="swal2-input" required>${categoriasOptions}</select>
+        </form>
         `,
                 showCancelButton: true,
                 confirmButtonText: 'Guardar Cambios',
                 cancelButtonText: 'Cancelar',
                 preConfirm: () => {
+                    // No validación, solo retorna los valores
                     return {
                         idActividad: actividad.idActividad,
                         descripcionActividad: document.getElementById('editarDescripcion').value,
@@ -519,8 +538,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Aquí puedes hacer un fetch/ajax para enviar los datos al backend o hacer submit de un formulario oculto
-                    // Ejemplo con fetch:
                     fetch('verActividades.php', {
                         method: 'POST',
                         headers: {
@@ -531,10 +548,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             });
 
-            // Selecciona los valores actuales
+            // Selecciona los valores actuales y ajusta el min de fecha fin
             setTimeout(() => {
                 document.getElementById('editarEmpleado').value = actividad.idEmpleado;
                 document.getElementById('editarCategoria').value = actividad.idCategoria;
+
+                // Al cambiar la fecha de inicio, la fecha de fin no puede ser menor
+                const fechaInicioInput = document.getElementById('editarFechaInicio');
+                const fechaFinInput = document.getElementById('editarFechaCulminacion');
+                fechaFinInput.min = fechaInicioInput.value;
+
+                fechaInicioInput.addEventListener('change', function() {
+                    fechaFinInput.min = this.value;
+                    if (fechaFinInput.value < this.value) {
+                        fechaFinInput.value = this.value;
+                    }
+                });
             }, 100);
         }
 

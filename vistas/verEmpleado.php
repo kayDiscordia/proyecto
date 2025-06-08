@@ -145,14 +145,6 @@ if ($nombreDepartamentoUsuario) {
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
                                     <?php 
-                                    // Ordenar por estado: Activo(1) -> Permisado(2) -> Suspendido(3)
-                                    usort($listaEmpleados, function ($a, $b) {
-                                        $orden = ['Activo' => 1, 'Permisado' => 2, 'Suspendido' => 3];
-                                        $aOrden = $orden[$a['estado_nombre']] ?? 4;
-                                        $bOrden = $orden[$b['estado_nombre']] ?? 4;
-                                        return $aOrden - $bOrden;
-                                    });
-
                                     foreach ($listaEmpleados as $index => $datos): ?>
                                         <tr class="hover:bg-gray-50">
                                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700"><?= $index + 1 ?></td>

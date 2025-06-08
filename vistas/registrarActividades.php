@@ -92,8 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="w-full max-w-2xl mx-auto">
                 <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-                <form action="" method="POST" id="activityForm" class="space-y-4" enctype="multipart/form-data">
-                         <!--Departamento-->
+                    <form action="" method="POST" id="activityForm" class="space-y-4" enctype="multipart/form-data">
+                        <!--Departamento-->
                         <div class="space-y-2">
                             <label for="departamento" class="block text-sm font-medium text-gray-700">Departamento</label>
                             <input type="text" id="departamento" name="departamento"
@@ -160,11 +160,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <div class="space-y-2">
-    <label for="archivosAdjuntos" class="block text-sm font-medium text-gray-700">Archivos Adjuntos</label>
-    <input type="file" id="archivosAdjuntos" name="archivosAdjuntos[]" multiple
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-    <p class="text-xs text-gray-500">Formatos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF. Máx. 5MB por archivo.</p>
-</div>
+                            <label for="archivosAdjuntos" class="block text-sm font-medium text-gray-700">Archivos Adjuntos</label>
+                            <input type="file" id="archivosAdjuntos" name="archivosAdjuntos[]" multiple
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            <p class="text-xs text-gray-500">Formatos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF. Máx. 5MB por archivo.</p>
+                        </div>
 
                         <br>
                         <div class="flex justify-between">
@@ -260,6 +260,107 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     submitBtn.disabled = true;
                 }
             });
+        });
+
+        // Validación asíncrona de duplicados
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('activityForm');
+            const nombreInput = document.getElementById('nombreActividad');
+            const fechaInicioInput = document.getElementById('fechaInicio');
+            const empleadoSelect = document.getElementById('idEmpleado');
+            const categoriaSelect = document.getElementById('idCategoria');
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            // Mensaje de error duplicado
+            let errorDuplicado = document.getElementById('errorDuplicadoActividad');
+            if (!errorDuplicado) {
+                errorDuplicado = document.createElement('div');
+                errorDuplicado.className = "bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded relative mb-2";
+                errorDuplicado.style.display = "none";
+                errorDuplicado.id = "errorDuplicadoActividad";
+                errorDuplicado.innerText = "Este empleado ya tiene una actividad igual asignada en esa fecha y categoría.";
+                form.insertBefore(errorDuplicado, form.firstChild);
+            }
+
+            async function verificarDuplicado() {
+                const nombre = nombreInput.value.trim();
+                const fecha = fechaInicioInput.value;
+                const empleado = empleadoSelect.value;
+                const categoria = categoriaSelect.value;
+
+                if (!nombre || !fecha || !empleado || !categoria) {
+                    errorDuplicado.style.display = "none";
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                try {
+                    const params = new URLSearchParams({
+                        action: 'verificarDuplicadoActividad',
+                        nombreActividad: nombre,
+                        fechaInicio: fecha,
+                        idEmpleado: empleado,
+                        idCategoria: categoria
+                    });
+                    const response = await fetch(`../controladores/controladorActividad.php?${params.toString()}`);
+                    const data = await response.json();
+
+                    if (data.duplicada && data.actividad) {
+                        // Mostrar modal SweetAlert2 con los datos de la actividad similar
+                        const {
+                            value: continuar
+                        } = await Swal.fire({
+                            icon: 'warning',
+                            title: 'Actividad similar encontrada',
+                            html: `
+            <div class="text-left">
+                <p>Ya existe una actividad similar registrada para este empleado y categoría:</p>
+                <ul class="mt-2 text-sm text-gray-700">
+                    <li><b>Nombre:</b> ${data.actividad.nombreActividad}</li>
+                    <li><b>Descripción:</b> ${data.actividad.descripcionActividad}</li>
+                    <li><b>Fecha de Inicio:</b> ${data.actividad.fechaInicio}</li>
+                    <li><b>Fecha de Culminación:</b> ${data.actividad.fechaCulminacion}</li>
+                </ul>
+                <p class="mt-2">¿Desea registrar la nueva actividad de todas formas?</p>
+            </div>
+        `,
+                            showCancelButton: true,
+                            confirmButtonText: 'Sí, registrar',
+                            cancelButtonText: 'No, cancelar',
+                            focusCancel: true
+                        });
+
+                        if (continuar) {
+                            errorDuplicado.style.display = "none";
+                            submitBtn.disabled = false;
+                        } else {
+                            errorDuplicado.style.display = "block";
+                            submitBtn.disabled = true;
+                        }
+                    } else if (data.duplicada) {
+                        errorDuplicado.style.display = "block";
+                        submitBtn.disabled = true;
+                    } else {
+                        errorDuplicado.style.display = "none";
+                        submitBtn.disabled = false;
+                    }
+                    if (data.duplicada) {
+                        errorDuplicado.style.display = "block";
+                        submitBtn.disabled = true;
+                    } else {
+                        errorDuplicado.style.display = "none";
+                        submitBtn.disabled = false;
+                    }
+                } catch (e) {
+                    errorDuplicado.style.display = "none";
+                    submitBtn.disabled = false;
+                }
+            }
+
+            nombreInput.addEventListener('blur', verificarDuplicado);
+            fechaInicioInput.addEventListener('change', verificarDuplicado);
+            empleadoSelect.addEventListener('change', verificarDuplicado);
+            categoriaSelect.addEventListener('change', verificarDuplicado);
         });
     </script>
 </body>

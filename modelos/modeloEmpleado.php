@@ -43,14 +43,14 @@ class modeloEmpleado
     public function obtenerEmpleados($idDepartamento = null, $soloActivos = false)
     {
         $query = "SELECT e.idEmpleado, e.nombres, e.apellidos, e.cedula, e.usuarioEmpleado, e.contrasena, 
-                     c.nombreCargo AS cargo_nombre, d.nombreDepartamentos AS departamento_nombre,
-                     r.nombreRol AS rol_nombre, es.nombreEstado AS estado_nombre
-              FROM empleados e
-              LEFT JOIN cargos c ON e.idCargo = c.idCargo
-              LEFT JOIN departamentos d ON e.idDepartamento = d.idDepartamentos
-              LEFT JOIN roles r ON e.idRol = r.idRol
-              LEFT JOIN estadosEmpleados es ON e.idEstado = es.idEstado
-              WHERE 1=1";
+                 c.nombreCargo AS cargo_nombre, d.nombreDepartamentos AS departamento_nombre,
+                 r.nombreRol AS rol_nombre, es.nombreEstado AS estado_nombre
+          FROM empleados e
+          LEFT JOIN cargos c ON e.idCargo = c.idCargo
+          LEFT JOIN departamentos d ON e.idDepartamento = d.idDepartamentos
+          LEFT JOIN roles r ON e.idRol = r.idRol
+          LEFT JOIN estadosEmpleados es ON e.idEstado = es.idEstado
+          WHERE 1=1";
         $params = [];
         $types = "";
 
@@ -62,6 +62,9 @@ class modeloEmpleado
         if ($soloActivos) {
             $query .= " AND es.nombreEstado = 'Activo'";
         }
+
+        // Cambia ASC por DESC si quieres los más recientes primero
+        $query .= " ORDER BY e.idEmpleado DESC";
 
         $stmt = $this->db->getConnection()->prepare($query);
         if (!empty($params)) {
@@ -75,6 +78,7 @@ class modeloEmpleado
             throw new Exception("Error al obtener empleados: " . $this->db->getConnection()->error);
         }
     }
+
 
     public function obtenerCargosPorDepartamento($idDepartamento)
     {
@@ -282,6 +286,20 @@ class modeloEmpleado
             return $resultado->fetch_assoc();
         } else {
             throw new Exception("Error al verificar la cédula: " . $this->db->getConnection()->error);
+        }
+    }
+    public function verificarUsuario($usuario)
+    {
+        $query = "SELECT COUNT(*) AS count FROM empleados WHERE usuarioEmpleado = ?";
+        $stmt = $this->db->getConnection()->prepare($query);
+        $stmt->bind_param("s", $usuario);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        if ($resultado) {
+            $row = $resultado->fetch_assoc();
+            return $row['count'] > 0;
+        } else {
+            throw new Exception("Error al verificar el usuario: " . $this->db->getConnection()->error);
         }
     }
 }

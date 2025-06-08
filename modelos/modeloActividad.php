@@ -1037,6 +1037,24 @@ class modeloActividad
         }
     }
 
+    public function actividadDuplicadaPorCategoriaEmpleado($idEmpleado, $idCategoria)
+    {
+        try {
+            $stmt = $this->db->getConnection()->prepare("
+            SELECT * FROM actividades 
+            WHERE idEmpleado = ? AND idCategoria = ?
+            LIMIT 1
+        ");
+            $stmt->bind_param("ii", $idEmpleado, $idCategoria);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $actividad = $result->fetch_assoc();
+            $stmt->close();
+            return $actividad ? $actividad : false;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
 
     public function guardarArchivoActividad($idActividad, $nombreArchivo, $tipoArchivo, $tamanoArchivo, $rutaArchivo)
     {
@@ -1113,5 +1131,29 @@ class modeloActividad
     public function obtenerUltimoIdInsertado()
     {
         return $this->db->getConnection()->insert_id;
+    }
+
+    public function actividadDuplicada($nombreActividad, $fechaInicio, $idEmpleado, $idCategoria)
+    {
+        try {
+            $stmt = $this->db->getConnection()->prepare("
+            SELECT COUNT(*) as total 
+            FROM actividades a
+            JOIN estadoActividad es ON a.idEstado = es.idEstado
+            WHERE a.nombreActividad = ? 
+              AND a.fechaInicio = ? 
+              AND a.idEmpleado = ? 
+              AND a.idCategoria = ?
+              AND es.nombreEstado NOT IN ('Completada', 'Cancelada')
+        ");
+            $stmt->bind_param("ssii", $nombreActividad, $fechaInicio, $idEmpleado, $idCategoria);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_assoc();
+            $stmt->close();
+            return $row['total'] > 0;
+        } catch (Exception $e) {
+            return false;
+        }
     }
 }
