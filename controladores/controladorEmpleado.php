@@ -60,21 +60,7 @@ class controladorEmpleado
         }
     }
 
-    public function verificarUsuarioModificarAjax()
-    {
-        if (isset($_POST['usuarioEmpleado'], $_POST['idEmpleado'])) {
-            $usuario = $_POST['usuarioEmpleado'];
-            $idEmpleado = (int)$_POST['idEmpleado'];
-            try {
-                $existe = $this->modelo->verificarUsuarioModificar($usuario, $idEmpleado);
-                echo json_encode(['existe' => $existe]);
-            } catch (Exception $e) {
-                echo json_encode(['error' => 'Error: ' . $e->getMessage()]);
-            }
-        } else {
-            echo json_encode(['error' => 'Datos incompletos.']);
-        }
-    }
+    
 
     public function obtenerCargos()
     {
