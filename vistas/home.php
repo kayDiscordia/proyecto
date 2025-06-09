@@ -186,7 +186,7 @@ $eventosJson = json_encode($eventosCalendario);
                     <p class="text-2xl font-bold"><?= $estadisticas['retraso'] ?? 0 ?></p>
                 </a>
                 <a href="verActividades.php?estado=En%20progreso" class="block status-card" style="background-color:#F97316; color:#fff;">
-                    <h2 class="text-lg font-semibold mb-2">En Proceso</h2>
+                    <h2 class="text-lg font-semibold mb-2">En Progreso</h2>
                     <p class="text-2xl font-bold"><?= $estadisticas['en_progreso'] ?></p>
                 </a>
                 <a href="verActividades.php?estado=Cancelada" class="block status-card" style="background-color:#EF4444; color:#fff;">

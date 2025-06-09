@@ -218,8 +218,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- Resultados -->
             <div class="bg-white p-6 rounded-lg shadow">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Actividades</h3>
-
+                    <!-- Botón Volver al Home -->
+                    <a href="home.php" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium shadow transition">
+                        <i class="fas fa-home mr-2"></i> Ver Calendario
+                    </a>
                 </div>
 
                 <?php if (empty($actividades)): ?>

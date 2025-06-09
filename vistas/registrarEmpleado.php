@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Campos de usuario y contraseña -->
                         <div class="space-y-2">
                             <label for="usuarioEmpleado" class="block text-sm font-medium text-gray-700">Usuario de acceso para el empleado</label>
-                            <input type="text" id="usuarioEmpleado" name="usuarioEmpleado"
+                            <input type="text" placeholder="Se recomienda usar el nombre del empleado" id="usuarioEmpleado" name="usuarioEmpleado"
                                 required
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                                 oninput="verificarUsuario()">
@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <div class="space-y-2">
                             <label for="contrasena" class="block text-sm font-medium text-gray-700">Contraseña</label>
-                            <input type="password" id="contrasena" name="contrasena" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            <input type="password" placeholder="Se recomienda usar la cedula como contraseña" id="contrasena" name="contrasena" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                         </div>
 
                         <div class="flex justify-between">

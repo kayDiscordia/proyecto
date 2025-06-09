@@ -79,6 +79,29 @@ class modeloEmpleado
         }
     }
 
+    public function verificarUsuarioExistente($usuario, $excluirIdEmpleado = null) {
+        try {
+            $sql = "SELECT COUNT(*) as total FROM empleados WHERE usuarioEmpleado = ?";
+            $params = [$usuario];
+            
+            if ($excluirIdEmpleado !== null) {
+                $sql .= " AND idEmpleado != ?";
+                $params[] = $excluirIdEmpleado;
+            }
+            
+            $stmt = $this->db->getConnection()->prepare($sql);
+            $types = str_repeat('s', count($params));
+            $stmt->bind_param($types, ...$params);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_assoc();
+            
+            return $row['total'] > 0;
+        } catch (Exception $e) {
+            throw new Exception("Error al verificar usuario: " . $e->getMessage());
+        }
+    }
+
 
     public function obtenerCargosPorDepartamento($idDepartamento)
     {
