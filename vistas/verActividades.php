@@ -501,6 +501,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 categoriasOptions += `<option value="<?= $categoria['idCategoria'] ?>"><?= htmlspecialchars($categoria['nombreCategoria']) ?></option>`;
             <?php endforeach; ?>
 
+
             // Obtener la fecha de hoy en formato yyyy-mm-dd
             const hoy = new Date();
             const yyyy = hoy.getFullYear();
@@ -508,22 +509,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const dd = String(hoy.getDate()).padStart(2, '0');
             const fechaHoy = `${yyyy}-${mm}-${dd}`;
 
+            function formatoDDMMYYYY(fecha) {
+                if (!fecha) return '';
+                const partes = fecha.split('-');
+                if (partes.length === 3) {
+                    return `${partes[2]}-${partes[1]}-${partes[0]}`;
+                }
+                return fecha;
+            }
             Swal.fire({
                 title: `Editar: ${actividad.nombreActividad}`,
+                width: '60vw',
                 html: `
-        <form id="formEditarSwal">
-            <label>Descripción:</label>
-            <input type="text" id="editarDescripcion" class="swal2-input" value="${actividad.descripcionActividad || ''}" required>
-            <label>Fecha Inicio:</label>
-            <input type="date" id="editarFechaInicio" class="swal2-input" value="${actividad.fechaInicio || ''}" min="${fechaHoy}" required><br>
-            <label>Fecha Culminación:</label>
-            <input type="date" id="editarFechaCulminacion" class="swal2-input" value="${actividad.fechaCulminacion || ''}" required><br>
-            <label>Empleado:</label>
-            <select id="editarEmpleado" class="swal2-input" required>${empleadosOptions}</select>
-            <label>Categoría:</label>
-            <select id="editarCategoria" class="swal2-input" required>${categoriasOptions}</select>
-        </form>
-        `,
+    <form id="formEditarSwal" style="width:100%;max-width:100%;margin:0 auto;display:flex;flex-direction:column;align-items:center;">
+        <label style="align-self:flex-start;">Descripción:</label>
+        <textarea id="editarDescripcion" class="swal2-textarea"
+            style="min-height:90px;max-height:200px;width:100%;resize:vertical;padding:10px;border-radius:8px;border:1px solid #d1d5db;font-size:15px;box-sizing:border-box;margin-bottom:12px;" required>${actividad.descripcionActividad || ''}</textarea>
+        <label style="align-self:flex-start;">Fecha Inicio:</label>
+        <input type="date" id="editarFechaInicio" class="swal2-input"
+            value="${actividad.fechaInicio || ''}" min="${fechaHoy}" required
+            style="width:100%;box-sizing:border-box;margin-bottom:12px;">
+        <label style="align-self:flex-start;">Fecha Culminación:</label>
+        <input type="date" id="editarFechaCulminacion" class="swal2-input"
+            value="${actividad.fechaCulminacion || ''}" required
+            style="width:100%;box-sizing:border-box;margin-bottom:12px;">
+        <label style="align-self:flex-start;">Empleado:</label>
+        <select id="editarEmpleado" class="swal2-input" required
+            style="width:100%;box-sizing:border-box;margin-bottom:12px;">${empleadosOptions}</select>
+        <label style="align-self:flex-start;">Categoría:</label>
+        <select id="editarCategoria" class="swal2-input" required
+            style="width:100%;box-sizing:border-box;">${categoriasOptions}</select>
+    </form>
+    `,
                 showCancelButton: true,
                 confirmButtonText: 'Guardar Cambios',
                 cancelButtonText: 'Cancelar',

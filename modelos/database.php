@@ -1,6 +1,5 @@
 <?php
-require_once '../login/conexion.php'; // Asegúrate de que la ruta sea correcta
-
+require_once __DIR__ . '/../login/conexion.php';
 class Database {
     private $conn;
 

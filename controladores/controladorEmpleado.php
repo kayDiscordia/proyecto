@@ -28,7 +28,7 @@ class controladorEmpleado
             $resultado = $this->modelo->crearEmpleado($data);
 
             if ($resultado === true) {
-                header('Location: ../vistas/verEmpleado.php');
+                header('Location: ../vistas/registrarEmpleado.php');
             } else {
                 echo '<div class="error">' . htmlspecialchars($resultado) . '</div>';
             }

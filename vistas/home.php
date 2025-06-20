@@ -223,6 +223,77 @@ $eventosJson = json_encode($eventosCalendario);
         document.addEventListener('DOMContentLoaded', function() {
             const eventos = <?php echo $eventosJson; ?>;
 
+            // Función para mostrar el listado de actividades del día
+            function mostrarListadoActividades(fecha, actividadesDia) {
+                let html = '<ul style="text-align:left;">';
+                actividadesDia.forEach((ev, idx) => {
+                    html += `<li style="margin-bottom:10px;">
+                    <strong>${ev.title}</strong>
+                    <button class="btn-ver-detalle" data-idx="${idx}" style="margin-left:10px;padding:2px 8px;background:#3b82f6;color:#fff;border:none;border-radius:4px;cursor:pointer;">
+                        Ver Detalles
+                    </button>
+                </li>`;
+                });
+                html += '</ul>';
+                Swal.fire({
+                    title: `Actividades del ${fecha.toLocaleDateString()}`,
+                    html: html,
+                    width: 500,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        document.querySelectorAll('.btn-ver-detalle').forEach(btn => {
+                            btn.addEventListener('click', function(e) {
+                                const idx = parseInt(this.getAttribute('data-idx'));
+                                const ev = actividadesDia[idx];
+                                const props = ev.extendedProps || {};
+                                let archivosHtml = '';
+                                if (props.archivosAdjuntos && Array.isArray(props.archivosAdjuntos) && props.archivosAdjuntos.length > 0) {
+                                    archivosHtml += `<div class="mt-2"><strong>Archivos Adjuntos:</strong><ul style="margin-top:5px;">`;
+                                    props.archivosAdjuntos.forEach(archivo => {
+                                        archivosHtml += `
+                                        <li style="margin-bottom:4px;">
+                                            <a href="../archivos/${archivo.rutaArchivo}" target="_blank" style="color:#2563eb;text-decoration:underline;">
+                                                <i class="fas fa-file-download"></i> ${archivo.nombreArchivo}
+                                            </a>
+                                            <a href="../archivos/${archivo.rutaArchivo}" download="${archivo.nombreArchivo}" style="margin-left:8px;color:#10b981;">
+                                                <i class="fas fa-download"></i> Descargar
+                                            </a>
+                                        </li>
+                                    `;
+                                    });
+                                    archivosHtml += `</ul></div>`;
+                                }
+                                Swal.fire({
+                                    title: ev.title,
+                                    html: `
+                                    <div class="text-left">
+                                        <p><strong>Descripción:</strong> ${props.description || ''}</p><br>
+                                        <p><strong>Fecha:</strong> ${ev.start ? parseFechaLocal(ev.start).toLocaleDateString() : ''}</p>
+                                        ${ev.end ? `<p><strong>Fecha Culminación:</strong> ${parseFechaLocal(ev.end).toLocaleDateString()}</p>` : ''}
+                                        <p><strong>Empleado:</strong> ${props.empleado || ''}</p>
+                                        <p><strong>Categoría:</strong> ${props.categoria || ''}</p>
+                                        <p><strong>Estado:</strong> ${props.estado || ''}</p>
+                                        ${props.estado === 'Cancelada' && props.descripcionCancelacion ? `<p><strong>Motivo de Cancelación:</strong> ${props.descripcionCancelacion}</p>` : ''}
+                                        ${props.estado === 'Completada' && props.descripcionCulminacion ? `<p><strong>Descripción de Culminación:</strong> ${props.descripcionCulminacion}</p>` : ''}
+                                        ${archivosHtml}
+                                    </div>
+                                `,
+                                    width: 600,
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Cerrar',
+                                    cancelButtonText: 'Volver',
+                                    reverseButtons: true
+                                }).then((result) => {
+                                    if (result.dismiss === Swal.DismissReason.cancel) {
+                                        mostrarListadoActividades(fecha, actividadesDia);
+                                    }
+                                });
+                            });
+                        });
+                    }
+                });
+            }
+
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
@@ -235,47 +306,15 @@ $eventosJson = json_encode($eventosCalendario);
                 events: eventos,
                 dayMaxEvents: 3,
                 eventClick: function(info) {
-                    console.log('eventClick disparado', info); // <-- Verifica en consola
-                    const event = info.event;
-                    const props = event.extendedProps || {};
-                    let archivosHtml = '';
-                    if (props.archivosAdjuntos && Array.isArray(props.archivosAdjuntos) && props.archivosAdjuntos.length > 0) {
-                        archivosHtml += `<div class="mt-2"><strong>Archivos Adjuntos:</strong><ul style="margin-top:5px;">`;
-                        props.archivosAdjuntos.forEach(archivo => {
-                            archivosHtml += `
-                <li style="margin-bottom:4px;">
-                    <a href="../archivos/${archivo.rutaArchivo}" target="_blank" style="color:#2563eb;text-decoration:underline;">
-                        <i class="fas fa-file-download"></i> ${archivo.nombreArchivo}
-                    </a>
-                    <a href="../archivos/${archivo.rutaArchivo}" download="${archivo.nombreArchivo}" style="margin-left:8px;color:#10b981;">
-                        <i class="fas fa-download"></i> Descargar
-                    </a>
-                </li>
-            `;
-                        });
-                        archivosHtml += `</ul></div>`;
-                    }
-                    Swal.fire({
-                        title: event.title,
-                        html: `
-            <div class="text-left">
-                <p><strong>Descripción:</strong> ${props.description || ''}</p>
-                <p><strong>Fecha:</strong> ${event.start ? parseFechaLocal(event.start).toLocaleDateString() : ''}</p>
-                ${event.end ? `<p><strong>Fecha Culminación:</strong> ${parseFechaLocal(event.end).toLocaleDateString()}</p>` : ''}
-                <p><strong>Empleado:</strong> ${props.empleado || ''}</p>
-                <p><strong>Categoría:</strong> ${props.categoria || ''}</p>
-                <p><strong>Estado:</strong> ${props.estado || ''}</p>
-                ${props.estado === 'Cancelada' && props.descripcionCancelacion ? `<p><strong>Motivo de Cancelación:</strong> ${props.descripcionCancelacion}</p>` : ''}
-                ${props.estado === 'Completada' && props.descripcionCulminacion ? `<p><strong>Descripción de Culminación:</strong> ${props.descripcionCulminacion}</p>` : ''}
-                ${archivosHtml}
-            </div>
-        `,
-                        width: 600,
-                        showCancelButton: true,
-                        confirmButtonText: 'Cerrar',
-                        cancelButtonText: 'Volver',
-                        reverseButtons: true
+                    // Al hacer click en un evento, mostrar el listado de actividades del día
+                    const fechaClic = info.event.startStr.substr(0, 10);
+                    const fechaObj = info.event.start;
+                    const actividadesDia = eventos.filter(ev => {
+                        const start = ev.start.substr(0, 10);
+                        const end = ev.end ? ev.end.substr(0, 10) : start;
+                        return fechaClic >= start && fechaClic <= end;
                     });
+                    mostrarListadoActividades(fechaObj, actividadesDia);
                 },
                 dateClick: function(info) {
                     const fechaClic = info.dateStr;
@@ -286,77 +325,7 @@ $eventosJson = json_encode($eventosCalendario);
                     });
 
                     if (actividadesDia.length > 0) {
-                        let html = '<ul style="text-align:left;">';
-                        actividadesDia.forEach((ev, idx) => {
-                            html += `<li style="margin-bottom:10px;">
-            <strong>${ev.title}</strong>
-            <button class="btn-ver-detalle" data-idx="${idx}" style="margin-left:10px;padding:2px 8px;background:#3b82f6;color:#fff;border:none;border-radius:4px;cursor:pointer;">
-                Ver Detalles
-            </button>
-        </li>`;
-                        });
-                        html += '</ul>';
-                        // Función para mostrar el listado de actividades del día
-                        function mostrarListadoActividades() {
-                            Swal.fire({
-                                title: `Actividades del ${info.date.toLocaleDateString()}`,
-                                html: html,
-                                width: 500,
-                                showConfirmButton: false,
-                                didOpen: () => {
-                                    document.querySelectorAll('.btn-ver-detalle').forEach(btn => {
-                                        btn.addEventListener('click', function(e) {
-                                            const idx = parseInt(this.getAttribute('data-idx'));
-                                            const ev = actividadesDia[idx];
-                                            const props = ev.extendedProps || {};
-                                            let archivosHtml = '';
-                                            if (props.archivosAdjuntos && Array.isArray(props.archivosAdjuntos) && props.archivosAdjuntos.length > 0) {
-                                                archivosHtml += `<div class="mt-2"><strong>Archivos Adjuntos:</strong><ul style="margin-top:5px;">`;
-                                                props.archivosAdjuntos.forEach(archivo => {
-                                                    archivosHtml += `
-                                    <li style="margin-bottom:4px;">
-                                        <a href="../archivos/${archivo.rutaArchivo}" target="_blank" style="color:#2563eb;text-decoration:underline;">
-                                            <i class="fas fa-file-download"></i> ${archivo.nombreArchivo}
-                                        </a>
-                                        <a href="../archivos/${archivo.rutaArchivo}" download="${archivo.nombreArchivo}" style="margin-left:8px;color:#10b981;">
-                                            <i class="fas fa-download"></i> Descargar
-                                        </a>
-                                    </li>
-                                `;
-                                                });
-                                                archivosHtml += `</ul></div>`;
-                                            }
-                                            Swal.fire({
-                                                title: ev.title,
-                                                html: `
-        <div class="text-left">
-            <p><strong>Descripción:</strong> ${props.description || ''}</p><br>
-            <p><strong>Fecha:</strong> ${ev.start ? parseFechaLocal(ev.start).toLocaleDateString() : ''}</p>
-            ${ev.end ? `<p><strong>Fecha Culminación:</strong> ${parseFechaLocal(ev.end).toLocaleDateString()}</p>` : ''}
-            <p><strong>Empleado:</strong> ${props.empleado || ''}</p>
-            <p><strong>Categoría:</strong> ${props.categoria || ''}</p>
-            <p><strong>Estado:</strong> ${props.estado || ''}</p>
-            ${props.estado === 'Cancelada' && props.descripcionCancelacion ? `<p><strong>Motivo de Cancelación:</strong> ${props.descripcionCancelacion}</p>` : ''}
-            ${props.estado === 'Completada' && props.descripcionCulminacion ? `<p><strong>Descripción de Culminación:</strong> ${props.descripcionCulminacion}</p>` : ''}
-            ${archivosHtml}
-        </div>
-    `,
-                                                width: 600,
-                                                showCancelButton: true,
-                                                confirmButtonText: 'Cerrar',
-                                                cancelButtonText: 'Volver',
-                                                reverseButtons: true
-                                            }).then((result) => {
-                                                if (result.dismiss === Swal.DismissReason.cancel) {
-                                                    mostrarListadoActividades();
-                                                }
-                                            });
-                                        });
-                                    });
-                                }
-                            });
-                        }
-                        mostrarListadoActividades();
+                        mostrarListadoActividades(info.date, actividadesDia);
                     } else {
                         Swal.fire({
                             title: `Sin actividades`,
@@ -364,6 +333,13 @@ $eventosJson = json_encode($eventosCalendario);
                             icon: 'info',
                             confirmButtonText: 'Cerrar'
                         });
+                    }
+                },
+                eventDidMount: function(info) {
+                    // Deshabilitar el puntero y click en el "+x más"
+                    if (info.el.classList.contains('fc-more')) {
+                        info.el.style.pointerEvents = 'none';
+                        info.el.style.cursor = 'default';
                     }
                 }
             });

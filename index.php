@@ -19,19 +19,10 @@ if (isset($_POST['submit'])) {
         $resultado = $iniciosesion->IniciarSesion($usuario, $contrasena);
 
         if ($resultado == 1) {
-            $_SESSION['iniciosesion'] = true;
-            $_SESSION['id'] = $iniciosesion->IdUsuario();
-        
-            // Obtener los datos del empleado y guardar el idRol en la sesión
-            $empleado = $iniciosesion->obtenerDatosEmpleadoPorId($_SESSION['id']);
-            $_SESSION['idRol'] = $empleado['idRol'];
-            $_SESSION['nombres'] = $empleado['nombres'];
-            $_SESSION['apellidos'] = $empleado['apellidos'];
-            $_SESSION['idDepartamento'] = $empleado['idDepartamento'];
-        
-        
             header('location: vistas/home.php');
             exit();
+        } elseif ($resultado == 20) {
+            $error = "Su usuario está suspendido o permisado. No puede iniciar sesión.";
         } else {
             $error = "Usuario o contraseña incorrectos.";
         }
@@ -44,6 +35,7 @@ if (isset($_POST['submit'])) {
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -63,6 +55,7 @@ if (isset($_POST['submit'])) {
         }
     </script>
 </head>
+
 <body class="relative min-h-screen flex items-center justify-center bg-[#E8EEFF]">
     <!-- Imagen de fondo difuminada -->
     <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('vistas/CSS/DeWatermark.ai_1743707779701.png'); z-index: -1;"></div>
@@ -95,10 +88,9 @@ if (isset($_POST['submit'])) {
                     name="Usuario"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Nombre de usuario"
-                    required
-                />
+                    required />
             </div>
-            
+
             <!-- Contraseña -->
             <div class="mb-6">
                 <label for="Contrasena" class="block text-sm font-medium text-gray-800 mb-1">
@@ -110,18 +102,17 @@ if (isset($_POST['submit'])) {
                     name="Contrasena"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="••••••••"
-                    required
-                />
+                    required />
             </div>
-            
+
             <button
                 type="submit"
                 name="submit"
-                class="w-full bg-[#0A1E5F] text-white font-medium py-2 px-4 rounded-md hover:bg-blue-500 transition-colors"
-            >
+                class="w-full bg-[#0A1E5F] text-white font-medium py-2 px-4 rounded-md hover:bg-blue-500 transition-colors">
                 Iniciar Sesión
             </button>
         </form>
     </div>
 </body>
+
 </html>

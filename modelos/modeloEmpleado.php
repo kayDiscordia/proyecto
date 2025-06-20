@@ -15,20 +15,22 @@ class modeloEmpleado
         // Verificar si el estado está definido, si no, asignar activo (1) por defecto
         $idEstado = $data['idEstado'] ?? 1;
 
+        // Hashear la contraseña antes de almacenarla
+        $contrasenaHash = password_hash($data['contrasena'], PASSWORD_DEFAULT);
+
         $sql = "INSERT INTO empleados (nombres, apellidos, cedula, idCargo, idDepartamento, usuarioEmpleado, contrasena, idRol, idEstado) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->getConnection()->prepare($sql);
 
-        // Nota: Corregí "nombres" (tenías "nombres" en tu código original)
         $stmt->bind_param(
-            "sssiissii",
+            "sssiisssi",
             $data['nombres'],
             $data['apellidos'],
             $data['cedula'],
             $data['idCargo'],
             $data['idDepartamento'],
             $data['usuarioEmpleado'],
-            $data['contrasena'],
+            $contrasenaHash, // Usar la contraseña hasheada
             $data['idRol'],
             $idEstado
         );
@@ -79,23 +81,24 @@ class modeloEmpleado
         }
     }
 
-    public function verificarUsuarioExistente($usuario, $excluirIdEmpleado = null) {
+    public function verificarUsuarioExistente($usuario, $excluirIdEmpleado = null)
+    {
         try {
             $sql = "SELECT COUNT(*) as total FROM empleados WHERE usuarioEmpleado = ?";
             $params = [$usuario];
-            
+
             if ($excluirIdEmpleado !== null) {
                 $sql .= " AND idEmpleado != ?";
                 $params[] = $excluirIdEmpleado;
             }
-            
+
             $stmt = $this->db->getConnection()->prepare($sql);
             $types = str_repeat('s', count($params));
             $stmt->bind_param($types, ...$params);
             $stmt->execute();
             $result = $stmt->get_result();
             $row = $result->fetch_assoc();
-            
+
             return $row['total'] > 0;
         } catch (Exception $e) {
             throw new Exception("Error al verificar usuario: " . $e->getMessage());
@@ -155,26 +158,42 @@ class modeloEmpleado
 
     public function actualizarEmpleado($data)
     {
+        // Hashear la contraseña si se está actualizando
+        $contrasena = !empty($data['contrasena']) ? password_hash($data['contrasena'], PASSWORD_DEFAULT) : null;
+
         $sql = "UPDATE empleados SET 
-            nombres = ?, 
-            apellidos = ?, 
-            cedula = ?, 
-            usuarioEmpleado = ?, 
-            contrasena = ?,
-            idEstado = ?
-            WHERE idEmpleado = ?";
+        nombres = ?, 
+        apellidos = ?, 
+        cedula = ?, 
+        usuarioEmpleado = ?, 
+        " . ($contrasena ? "contrasena = ?, " : "") . "
+        idEstado = ?
+        WHERE idEmpleado = ?";
 
         $stmt = $this->db->getConnection()->prepare($sql);
-        $stmt->bind_param(
-            "sssssii",
-            $data['nombres'],
-            $data['apellidos'],
-            $data['cedula'],
-            $data['usuarioEmpleado'],
-            $data['contrasena'],
-            $data['idEstado'],
-            $data['idEmpleado']
-        );
+
+        if ($contrasena) {
+            $stmt->bind_param(
+                "sssssii",
+                $data['nombres'],
+                $data['apellidos'],
+                $data['cedula'],
+                $data['usuarioEmpleado'],
+                $contrasena,
+                $data['idEstado'],
+                $data['idEmpleado']
+            );
+        } else {
+            $stmt->bind_param(
+                "ssssii",
+                $data['nombres'],
+                $data['apellidos'],
+                $data['cedula'],
+                $data['usuarioEmpleado'],
+                $data['idEstado'],
+                $data['idEmpleado']
+            );
+        }
 
         if ($stmt->execute()) {
             return true;
@@ -182,6 +201,7 @@ class modeloEmpleado
             throw new Exception("Error al actualizar empleado: " . $this->db->getConnection()->error);
         }
     }
+    
     public function obtenerEstadosEmpleados()
     {
         $query = "SELECT idEstado, nombreEstado FROM estadosEmpleados ORDER BY idEstado";

@@ -7,6 +7,8 @@
         }
     ],
     "require-dev": {
-        "phpdocumentor/phpdocumentor": "^3.4"
+        "phpdocumentor/phpdocumentor": "^3.4",
+        "codeception/codeception": "^5.3",
+        "phpunit/phpunit": "^10.5"
     }
 }

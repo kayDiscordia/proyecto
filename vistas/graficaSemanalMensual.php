@@ -1,9 +1,18 @@
 <?php
 session_start();
 require_once '../controladores/controladorActividad.php';
+require '../login/functionLogin.php';
 
+$select = new Login();
 $controlador = new controladorActividad();
 
+
+if (isset($_SESSION['id'])) {
+    $user = $select->SelectuserByuser($_SESSION['id']);
+    $idDepartamentoUsuario = $_SESSION['idDepartamento'] ?? null;
+} else {
+    header('location: ../index.php');
+}
 // Obtener fechas y departamento del formulario si existen
 $fechaInicio = $_GET['fechaInicio'] ?? '';
 $fechaFin = $_GET['fechaFin'] ?? '';
